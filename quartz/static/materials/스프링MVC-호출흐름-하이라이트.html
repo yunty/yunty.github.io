@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스프링 MVC 호출 흐름 (변수 색상 보기)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --text:#1f1f1d; --muted:#6b6a64; --line:#e3e1d8;
+  --code-bg:#f4f2eb; --code-text:#2b2a27;
+  --accent:#534ab7; --accent-bg:#eeedfe;
+  --req:#185fa5;     --req-bg:#e6f1fb;
+  --chain:#0f6e56;   --chain-bg:#e1f5ee;
+  --handler:#854f0b; --handler-bg:#faeeda;
+  --adapter:#534ab7; --adapter-bg:#eeedfe;
+  --args:#0c6b7a;    --args-bg:#def3f6;
+  --result:#3b6d11;  --result-bg:#eaf3de;
+  --mav:#a14a12;     --mav-bg:#fbe9dc;
+  --mv:#a32d2d;      --mv-bg:#fcebeb;
+  --view:#993556;    --view-bg:#fbeaf0;
+  --misc:#5f5e5a;    --misc-bg:#eceae2;
+  --ty:#7a3fa0; --kw:#9c4a00; --cm:#8a8880;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1c1c1a; --card:#262624; --text:#ecebe4; --muted:#a3a198; --line:#3a3a36;
+    --code-bg:#1f1f1d; --code-text:#e6e4dc;
+    --accent:#afa9ec; --accent-bg:#2b2848;
+    --req:#85b7eb;     --req-bg:#14283d;
+    --chain:#5dcaa5;   --chain-bg:#10372d;
+    --handler:#fac775; --handler-bg:#3d2c10;
+    --adapter:#afa9ec; --adapter-bg:#2b2848;
+    --args:#6fd3e0;    --args-bg:#0f3238;
+    --result:#97c459;  --result-bg:#22340f;
+    --mav:#f2a672;     --mav-bg:#40240f;
+    --mv:#f09595;      --mv-bg:#3d1717;
+    --view:#ed93b1;    --view-bg:#3d1a29;
+    --misc:#b4b2a9;    --misc-bg:#33332f;
+    --ty:#c9a0ea; --kw:#f0b36a; --cm:#8f8d84;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.7;font-size:16px}
+.wrap{max-width:920px;margin:0 auto;padding:0 16px 90px}
+header{padding:40px 0 14px}
+h1{font-size:27px;margin:0 0 6px;font-weight:600}
+.sub{color:var(--muted);margin:0;font-size:15px}
+nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+nav a{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:3px 10px;border-radius:99px;background:var(--card)}
+nav a:hover{color:var(--accent);border-color:var(--accent)}
+section{margin-top:38px;scroll-margin-top:60px}
+h2{font-size:21px;margin:0 0 4px;font-weight:600}
+.lead{color:var(--muted);margin:0 0 12px;font-size:14.5px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.note{border-left:4px solid var(--accent);background:var(--accent-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:14.5px}
+.warn{border-left:4px solid var(--mv);background:var(--mv-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:14.5px}
+
+/* 코드 */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13.5px;line-height:1.95;margin:8px 0 0;border:1px solid var(--line)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace}
+p code,li code,td code,.legend code{font-size:13px}
+.v{border-radius:4px;padding:1px 4px;font-weight:600}
+.v.req{color:var(--req);background:var(--req-bg)}
+.v.chain{color:var(--chain);background:var(--chain-bg)}
+.v.handler{color:var(--handler);background:var(--handler-bg)}
+.v.adapter{color:var(--adapter);background:var(--adapter-bg)}
+.v.args{color:var(--args);background:var(--args-bg)}
+.v.result{color:var(--result);background:var(--result-bg)}
+.v.mav{color:var(--mav);background:var(--mav-bg)}
+.v.mv{color:var(--mv);background:var(--mv-bg)}
+.v.view{color:var(--view);background:var(--view-bg)}
+.v.misc{color:var(--misc);background:var(--misc-bg)}
+.ty{color:var(--ty);font-weight:600}
+.kw{color:var(--kw);font-weight:600}
+.cm{color:var(--cm);font-style:italic}
+
+/* 호출 순서 카드 */
+.seq-title{font-size:15px;font-weight:600;margin:18px 0 8px}
+.seq-title:first-of-type{margin-top:6px}
+.row{display:grid;grid-template-columns:50px 200px 1fr;gap:10px;align-items:stretch;margin-top:8px}
+.row .no{display:flex;align-items:center;justify-content:center;min-width:40px;height:28px;padding:0 6px;white-space:nowrap;border-radius:99px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;align-self:center}
+.row .who{border-radius:8px;padding:5px 10px;border:1px solid transparent;line-height:1.35}
+.row .who small{display:block;font-size:12px;opacity:.8}
+.row .who b{display:block;font-size:14px;font-weight:600}
+.row .call{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 12px;min-width:0}
+.row .call code{display:block;font-size:13px;white-space:pre-wrap;word-break:break-word}
+.row .call .why{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+.w-teal{background:var(--chain-bg);color:var(--chain)}
+.w-purple{background:var(--adapter-bg);color:var(--adapter)}
+.w-amber{background:var(--handler-bg);color:var(--handler)}
+.w-pink{background:var(--view-bg);color:var(--view)}
+.w-coral{background:var(--mv-bg);color:var(--mv)}
+.w-blue{background:var(--req-bg);color:var(--req)}
+.w-gray{background:var(--misc-bg);color:var(--misc)}
+.sublabel{margin:14px 0 0;font-size:13px;color:var(--muted)}
+.seq-title{scroll-margin-top:60px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
+.chips a{font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:2px 9px;border-radius:99px;background:var(--card)}
+.chips a:hover{color:var(--accent);border-color:var(--accent)}
+@media (max-width:640px){.row{grid-template-columns:46px 1fr}.row .call{grid-column:1 / -1}}
+
+/* 범례 */
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px 14px;margin-top:6px}
+.legend div{font-size:13.5px;display:flex;gap:8px;align-items:baseline}
+.legend .desc{color:var(--muted)}
+
+/* 값의 이동 띠 */
+.strip{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13.5px}
+.strip .step{border:1px solid var(--line);border-radius:8px;padding:3px 9px;background:var(--card);color:var(--muted)}
+.strip .ar{color:var(--muted)}
+
+/* 그룹 헤더 */
+.grp{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:600}
+.callee{font-size:12.5px;color:var(--muted);margin:2px 0 0}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:6px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+details{border:1px solid var(--line);border-radius:10px;background:var(--card);margin-top:10px;padding:2px 16px}
+summary{cursor:pointer;padding:10px 0;font-weight:500}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+footer{margin-top:48px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>스프링 MVC 호출 흐름 (변수 색상 보기)</h1>
+  <p class="sub">호출 문장에서 <b>같은 값은 같은 색</b>으로 칠해서, 값이 어디서 만들어져 어디로 흘러가는지 눈으로 따라가는 복습용 문서</p>
+</header>
+
+<nav>
+  <a href="#seq">호출 순서</a>
+  <a href="#legend">색 범례</a>
+  <a href="#flow">값의 이동</a>
+  <a href="#a">A 찾기·준비</a>
+  <a href="#b">B 실행</a>
+  <a href="#c">C 마무리</a>
+  <a href="#vars">변수 정리표</a>
+  <a href="#diff">데이터/화면 차이</a>
+  <a href="#all">전체 코드</a>
+</nav>
+
+<section id="seq">
+  <h2>호출 순서</h2>
+  <p class="lead">카드 하나가 호출 한 번입니다. 왼쪽은 "누가 → 누구를 부르는지", 오른쪽은 실제 호출 문장(돌려받는 값과 넘기는 값)입니다. <b>1번은 전체를 지휘하는 DispatcherServlet의 순서</b>이고, <b>2번부터는 각 부품이 자기 안에서 일하는 순서</b>입니다. 번호(예: 3-4)는 "그룹 번호-순서"입니다.</p>
+  <div class="chips">
+    <a href="#g1">1 DispatcherServlet</a><a href="#g2">2 HandlerMapping</a><a href="#g3">3 HandlerAdapter</a><a href="#g4">4 ArgumentResolver</a><a href="#g5">5 ReturnValueHandler</a><a href="#g6">6 Converter</a><a href="#g7">7 인터셉터 체인</a><a href="#g8">8 ViewResolver</a><a href="#g9">9 View</a><a href="#g10">10 톰캣</a>
+  </div>
+
+  <div class="card">
+    <div class="seq-title" id="g1">1. DispatcherServlet이 부르는 순서 (doDispatch)</div>
+
+    <div class="row"><span class="no">1-1</span><div class="who w-purple"><small>톰캣</small><b>→ DispatcherServlet</b></div><div class="call"><code class="hl-line">dispatcherServlet.service(req, resp);</code><span class="why">여기서 doDispatch가 시작됨</span></div></div>
+
+    <div class="row"><span class="no">1-2</span><div class="who w-amber"><small>DispatcherServlet</small><b>→ HandlerMapping</b></div><div class="call"><code class="hl-line">HandlerExecutionChain chain = mapping.getHandler(req);</code><span class="why">null이면 다음 매핑, 전부 null이면 404</span></div></div>
+
+    <div class="row"><span class="no">1-3</span><div class="who w-amber"><small>DispatcherServlet</small><b>→ HandlerAdapter</b></div><div class="call"><code class="hl-line">boolean ok = adapter.supports(chain.handler());</code><span class="why">true라고 답한 첫 어댑터를 선택</span></div></div>
+
+    <div class="row"><span class="no">1-4</span><div class="who w-pink"><small>DispatcherServlet</small><b>→ 인터셉터들</b></div><div class="call"><code class="hl-line">boolean go = chain.applyPreHandle(req, resp);</code><span class="why">앞에서부터 실행, false면 여기서 중단</span></div></div>
+
+    <div class="row"><span class="no">1-5</span><div class="who w-amber"><small>DispatcherServlet</small><b>→ HandlerAdapter</b></div><div class="call"><code class="hl-line">ModelAndView mv = adapter.handle(req, resp, chain.handler());</code><span class="why">안쪽은 아래 3번 그룹, 데이터 응답이면 mv는 null</span></div></div>
+
+    <div class="row"><span class="no">1-6</span><div class="who w-pink"><small>DispatcherServlet</small><b>→ 인터셉터들</b></div><div class="call"><code class="hl-line">chain.applyPostHandle(req, resp, mv);</code><span class="why">뒤에서부터 실행</span></div></div>
+
+    <div class="row"><span class="no">1-7</span><div class="who w-gray"><small>DispatcherServlet</small><b>→ ViewResolver</b></div><div class="call"><code class="hl-line">View view = viewResolver.resolveViewName(mv.getViewName());</code><span class="why">mv가 null이 아닐 때만 (화면 응답)</span></div></div>
+
+    <div class="row"><span class="no">1-8</span><div class="who w-gray"><small>DispatcherServlet</small><b>→ View</b></div><div class="call"><code class="hl-line">view.render(mv.getModel(), req, resp);</code><span class="why">mv가 null이 아닐 때만, Response에 HTML 기록</span></div></div>
+
+    <div class="row"><span class="no">1-9</span><div class="who w-pink"><small>DispatcherServlet</small><b>→ 인터셉터들</b></div><div class="call"><code class="hl-line">chain.triggerAfterCompletion(req, resp, ex);</code><span class="why">예외가 나도 실행, 끝나면 톰캣이 HTTP로 전송</span></div></div>
+
+    <div class="seq-title" id="g2" style="margin-top:26px">2. HandlerMapping 내부 순서 (getHandler 안쪽, 1-2번의 속)</div>
+
+    <div class="row"><span class="no">2-1</span><div class="who w-amber"><small>HandlerMapping</small><b>→ 주소 뽑기</b></div><div class="call"><code class="hl-line">String path = getLookupPath(req);</code><span class="why">쿼리를 뺀 주소만 뽑음 (예: /todos/3)</span></div></div>
+
+    <div class="row"><span class="no">2-2</span><div class="who w-amber"><small>HandlerMapping</small><b>→ 매핑 표(registry)</b></div><div class="call"><code class="hl-line">List&lt;Match&gt; candidates = registry.findCandidates(path, req);</code><span class="why">주소 패턴, HTTP 메서드, 조건이 모두 맞는 후보를 표에서 모음</span></div></div>
+
+    <div class="row"><span class="no">2-3</span><div class="who w-purple"><small>HandlerMapping</small><b>→ DispatcherServlet</b></div><div class="call"><code class="hl-line">if (candidates.isEmpty()) return null;</code><span class="why">못 찾으면 null을 돌려줘서 DispatcherServlet이 다음 매핑에게 묻게 함</span></div></div>
+
+    <div class="row"><span class="no">2-4</span><div class="who w-amber"><small>HandlerMapping</small><b>→ 후보 비교</b></div><div class="call"><code class="hl-line">Match best = pickMostSpecific(candidates);</code><span class="why">후보가 여럿이면 가장 구체적인 것 선택 (/todos/me가 /todos/{id}보다 우선)</span></div></div>
+
+    <div class="row"><span class="no">2-5</span><div class="who w-blue"><small>HandlerMapping</small><b>→ req</b></div><div class="call"><code class="hl-line">req.setAttribute("pathVariables", best.pathVariables());</code><span class="why">{id} 같은 값을 요청에 저장해 둠 (나중에 @PathVariable이 꺼내 씀)</span></div></div>
+
+    <div class="row"><span class="no">2-6</span><div class="who w-pink"><small>HandlerMapping</small><b>→ 인터셉터 선별</b></div><div class="call"><code class="hl-line">List&lt;HandlerInterceptor&gt; interceptors = matchingInterceptors(path);</code><span class="why">이 주소에 적용되는 인터셉터만 고름</span></div></div>
+
+    <div class="row"><span class="no">2-7</span><div class="who w-purple"><small>HandlerMapping</small><b>→ DispatcherServlet</b></div><div class="call"><code class="hl-line">return new HandlerExecutionChain(best.handlerMethod(), interceptors);</code><span class="why">핸들러와 인터셉터를 한 묶음으로 반환 (1-2번의 chain이 됨)</span></div></div>
+
+    <div class="seq-title" id="g3" style="margin-top:26px">3. HandlerAdapter 내부 순서 (adapter.handle() 안쪽, 1-5번의 속)</div>
+
+    <div class="row"><span class="no">3-1</span><div class="who w-blue"><small>HandlerAdapter</small><b>→ req, resp 묶기</b></div><div class="call"><code class="hl-line">ServletWebRequest web = new ServletWebRequest(req, resp);</code><span class="why">톰캣이 만든 req, resp를 web 하나로 묶음 (Resolver와 처리기에 한 번에 넘기려고)</span></div></div>
+
+    <div class="row"><span class="no">3-2</span><div class="who w-amber"><small>HandlerAdapter</small><b>→ 보관함 만들기</b></div><div class="call"><code class="hl-line">ModelAndViewContainer mav = new ModelAndViewContainer();</code><span class="why">요청마다 새 보관함 (Model, 뷰 이름, 응답 완료 표시가 들어 있음)</span></div></div>
+
+    <div class="row"><span class="no">3-3</span><div class="who w-amber"><small>HandlerAdapter</small><b>→ ArgumentResolver</b></div><div class="call"><code class="hl-line">boolean ok = resolver.supports(parameter);</code><span class="why">매개변수마다 반복, 첫 true를 선택</span></div></div>
+
+    <div class="row"><span class="no">3-4</span><div class="who w-amber"><small>HandlerAdapter</small><b>→ ArgumentResolver</b></div><div class="call"><code class="hl-line">args[i] = resolver.resolveArgument(parameter, mav, web);</code><span class="why">그 매개변수에 넣을 값을 만들어 args에 저장</span></div></div>
+
+    <div class="row"><span class="no">3-5</span><div class="who w-coral"><small>HandlerAdapter</small><b>→ 내 컨트롤러</b></div><div class="call"><code class="hl-line">Object result = method.invoke(bean, args);</code><span class="why">컨트롤러 메서드 실행, 반환값이 result에 담김</span></div></div>
+
+    <div class="row"><span class="no">3-6</span><div class="who w-amber"><small>HandlerAdapter</small><b>→ 반환 타입 정보</b></div><div class="call"><code class="hl-line">MethodParameter returnType = handlerMethod.getReturnType();</code><span class="why">메서드에 선언된 반환 타입과 애너테이션 정보 (실제 반환값 result가 아니라 선언 정보)</span></div></div>
+
+    <div class="row"><span class="no">3-7</span><div class="who w-amber"><small>HandlerAdapter</small><b>→ ReturnValueHandler</b></div><div class="call"><code class="hl-line">boolean ok = returnHandler.supports(returnType);</code><span class="why">첫 true를 선택 (@ResponseBody 담당인지, 뷰 이름 담당인지)</span></div></div>
+
+    <div class="row"><span class="no">3-8</span><div class="who w-amber"><small>HandlerAdapter</small><b>→ ReturnValueHandler</b></div><div class="call"><code class="hl-line">returnHandler.handleReturnValue(result, returnType, mav, web);</code><span class="why">데이터면 JSON 기록, 화면이면 뷰 이름을 mav에 저장</span></div></div>
+
+    <div class="row"><span class="no">3-9</span><div class="who w-blue"><small>ReturnValueHandler</small><b>→ HttpMessageConverter</b></div><div class="call"><code class="hl-line">converter.write(value, mediaType, outputMessage);</code><span class="why">데이터 응답일 때만, Response에 JSON 기록</span></div></div>
+
+    <div class="row"><span class="no">3-10</span><div class="who w-purple"><small>HandlerAdapter</small><b>→ DispatcherServlet</b></div><div class="call"><code class="hl-line">return mav.isRequestHandled() ? null : new ModelAndView(mav.getViewName(), mav.getModel());</code><span class="why">데이터 응답이면 null, 화면 응답이면 ModelAndView (1-5번의 mv가 됨)</span></div></div>
+
+    <div class="seq-title" id="g4" style="margin-top:26px">4. ArgumentResolver 내부 순서 (예: @RequestParam 담당, 3-4번의 속)</div>
+
+    <div class="row"><span class="no">4-1</span><div class="who w-amber"><small>ArgumentResolver</small><b>→ 매개변수 정보</b></div><div class="call"><code class="hl-line">boolean ok = parameter.hasAnnotation(RequestParam.class);</code><span class="why">supports: 내가 담당할 매개변수인가 (애너테이션과 타입 확인)</span></div></div>
+
+    <div class="row"><span class="no">4-2</span><div class="who w-blue"><small>ArgumentResolver</small><b>→ req</b></div><div class="call"><code class="hl-line">String raw = req.getParameter(parameter.getName());</code><span class="why">톰캣이 만든 req에서 쿼리 값을 문자열로 꺼냄</span></div></div>
+
+    <div class="row"><span class="no">4-3</span><div class="who w-amber"><small>ArgumentResolver</small><b>→ 매개변수 정보</b></div><div class="call"><code class="hl-line">if (raw == null &amp;&amp; parameter.hasDefault()) raw = parameter.getDefaultValue();</code><span class="why">값이 없으면 defaultValue를 사용</span></div></div>
+
+    <div class="row"><span class="no">4-4</span><div class="who w-coral"><small>ArgumentResolver</small><b>→ 예외</b></div><div class="call"><code class="hl-line">if (raw == null) throw new MissingParameterException(parameter);</code><span class="why">필수인데 값이 없으면 예외, 400 응답이 됨</span></div></div>
+
+    <div class="row"><span class="no">4-5</span><div class="who w-amber"><small>ArgumentResolver</small><b>→ 타입 변환</b></div><div class="call"><code class="hl-line">Object value = convert(raw, parameter.getType());</code><span class="why">문자열을 long, int 같은 매개변수 타입으로 변환 (실패하면 400)</span></div></div>
+
+    <div class="row"><span class="no">4-6</span><div class="who w-purple"><small>ArgumentResolver</small><b>→ HandlerAdapter</b></div><div class="call"><code class="hl-line">return value;</code><span class="why">이 값이 3-4번의 args[i]에 들어감</span></div></div>
+
+    <p class="sublabel">Model 담당 Resolver는 4-2~4-5 대신 <code>return mav.getModel();</code> 한 줄로 끝나고, @RequestBody 담당 Resolver는 요청 본문을 읽어 컨버터로 객체를 만듭니다.</p>
+
+    <div class="seq-title" id="g5" style="margin-top:26px">5. ReturnValueHandler 내부 순서 (3-8번의 속)</div>
+    <p class="sublabel" style="margin-top:0">(A) 데이터 응답: @ResponseBody, @RestController 담당</p>
+
+    <div class="row"><span class="no">5-1</span><div class="who w-amber"><small>ReturnValueHandler</small><b>→ 반환 타입 정보</b></div><div class="call"><code class="hl-line">boolean ok = returnType.hasAnnotation(ResponseBody.class);</code><span class="why">supports: @ResponseBody(@RestController 포함)가 붙었나</span></div></div>
+
+    <div class="row"><span class="no">5-2</span><div class="who w-coral"><small>ReturnValueHandler</small><b>→ 보관함</b></div><div class="call"><code class="hl-line">mav.setRequestHandled(true);</code><span class="why">"응답은 내가 끝낸다"고 표시 (그래서 3-10번이 null을 반환)</span></div></div>
+
+    <div class="row"><span class="no">5-3</span><div class="who w-blue"><small>ReturnValueHandler</small><b>→ 컨버터 목록</b></div><div class="call"><code class="hl-line">HttpMessageConverter converter = findConverter(result, mediaType);</code><span class="why">컨버터들에게 canWrite로 물어 맞는 것을 찾음</span></div></div>
+
+    <div class="row"><span class="no">5-4</span><div class="who w-blue"><small>ReturnValueHandler</small><b>→ resp</b></div><div class="call"><code class="hl-line">HttpOutputMessage outputMessage = wrap(web.getResponse());</code><span class="why">톰캣의 resp를 쓰기 좋게 감쌈 (web은 req, resp를 묶은 것)</span></div></div>
+
+    <div class="row"><span class="no">5-5</span><div class="who w-blue"><small>ReturnValueHandler</small><b>→ HttpMessageConverter</b></div><div class="call"><code class="hl-line">converter.write(result, mediaType, outputMessage);</code><span class="why">객체를 JSON으로 만들어 Response에 기록 (다음 6번 그룹)</span></div></div>
+
+    <p class="sublabel">(B) 화면 응답: 뷰 이름 담당 (위 5-2~5-5 대신 실행)</p>
+
+    <div class="row"><span class="no">5-6</span><div class="who w-amber"><small>ReturnValueHandler</small><b>→ 반환 타입 정보</b></div><div class="call"><code class="hl-line">boolean ok = returnType.getType() == String.class;</code><span class="why">supports: 문자열을 반환하는가 (뷰 이름으로 해석)</span></div></div>
+
+    <div class="row"><span class="no">5-7</span><div class="who w-coral"><small>ReturnValueHandler</small><b>→ 보관함</b></div><div class="call"><code class="hl-line">mav.setViewName((String) result);</code><span class="why">뷰 이름만 저장하고 Response에는 쓰지 않음, 응답 완료 표시도 하지 않음</span></div></div>
+
+    <div class="seq-title" id="g6" style="margin-top:26px">6. HttpMessageConverter 내부 순서 (Jackson 컨버터, 5-5번의 속)</div>
+
+    <div class="row"><span class="no">6-1</span><div class="who w-blue"><small>컨버터</small><b>→ 타입, 형식 확인</b></div><div class="call"><code class="hl-line">boolean ok = converter.canWrite(value.getClass(), mediaType);</code><span class="why">이 타입의 객체를 이 형식(JSON)으로 쓸 수 있나</span></div></div>
+
+    <div class="row"><span class="no">6-2</span><div class="who w-blue"><small>컨버터</small><b>→ 응답 헤더</b></div><div class="call"><code class="hl-line">outputMessage.getHeaders().setContentType("application/json;charset=UTF-8");</code><span class="why">Content-Type 헤더 설정</span></div></div>
+
+    <div class="row"><span class="no">6-3</span><div class="who w-blue"><small>컨버터</small><b>→ Jackson</b></div><div class="call"><code class="hl-line">byte[] json = objectMapper.writeValueAsBytes(value);</code><span class="why">객체의 필드 이름과 값을 JSON 바이트로 변환</span></div></div>
+
+    <div class="row"><span class="no">6-4</span><div class="who w-blue"><small>컨버터</small><b>→ Response 출력 스트림</b></div><div class="call"><code class="hl-line">outputMessage.getBody().write(json);</code><span class="why">JSON 바이트를 Response에 기록 (톰캣이 나중에 HTTP로 전송)</span></div></div>
+
+    <div class="seq-title" id="g7" style="margin-top:26px">7. HandlerExecutionChain 내부 순서 (인터셉터 호출, 1-4 · 1-6 · 1-9번의 속)</div>
+
+    <div class="row"><span class="no">7-1</span><div class="who w-pink"><small>HandlerExecutionChain</small><b>→ 인터셉터 (앞에서부터)</b></div><div class="call"><code class="hl-line">boolean go = interceptors.get(i).preHandle(req, resp, handlerMethod);</code><span class="why">applyPreHandle: 앞에서부터 차례로 실행</span></div></div>
+
+    <div class="row"><span class="no">7-2</span><div class="who w-pink"><small>HandlerExecutionChain</small><b>→ 마무리 호출</b></div><div class="call"><code class="hl-line">if (!go) { triggerAfterCompletion(req, resp, null); return false; }</code><span class="why">하나라도 false면 이미 실행한 인터셉터들의 마무리만 하고 멈춤</span></div></div>
+
+    <div class="row"><span class="no">7-3</span><div class="who w-pink"><small>HandlerExecutionChain</small><b>→ 인터셉터 (뒤에서부터)</b></div><div class="call"><code class="hl-line">interceptors.get(i).postHandle(req, resp, handlerMethod, mv);</code><span class="why">applyPostHandle: 뒤에서부터 차례로 실행</span></div></div>
+
+    <div class="row"><span class="no">7-4</span><div class="who w-pink"><small>HandlerExecutionChain</small><b>→ 인터셉터 (뒤에서부터)</b></div><div class="call"><code class="hl-line">interceptors.get(i).afterCompletion(req, resp, handlerMethod, ex);</code><span class="why">triggerAfterCompletion: 뒤에서부터, 성공이든 실패든 실행</span></div></div>
+
+    <div class="seq-title" id="g8" style="margin-top:26px">8. ViewResolver 내부 순서 (1-7번의 속)</div>
+
+    <div class="row"><span class="no">8-1</span><div class="who w-gray"><small>ViewResolver</small><b>→ 파일 위치 조립</b></div><div class="call"><code class="hl-line">String templatePath = prefix + viewName + suffix;</code><span class="why">예: templates/ + hello + .html</span></div></div>
+
+    <div class="row"><span class="no">8-2</span><div class="who w-gray"><small>ViewResolver</small><b>→ View 만들기</b></div><div class="call"><code class="hl-line">View view = new TemplateView(templatePath);</code><span class="why">파일을 읽는 일은 render 때 하고, 여기서는 위치만 담은 View를 만듦</span></div></div>
+
+    <div class="row"><span class="no">8-3</span><div class="who w-purple"><small>ViewResolver</small><b>→ DispatcherServlet</b></div><div class="call"><code class="hl-line">return view;</code><span class="why">못 찾으면 null을 돌려줘서 다음 ViewResolver에게 넘어감</span></div></div>
+
+    <div class="seq-title" id="g9" style="margin-top:26px">9. View 내부 순서 (render, 1-8번의 속)</div>
+
+    <div class="row"><span class="no">9-1</span><div class="who w-gray"><small>View</small><b>→ 템플릿 파일</b></div><div class="call"><code class="hl-line">String html = readTemplate(templatePath);</code><span class="why">templates/hello.html 파일을 읽음</span></div></div>
+
+    <div class="row"><span class="no">9-2</span><div class="who w-gray"><small>View</small><b>→ Model</b></div><div class="call"><code class="hl-line">html = html.replace("${" + key + "}", String.valueOf(model.get(key)));</code><span class="why">Model의 이름과 값으로 ${이름} 빈칸을 채움 (모든 key에 대해 반복)</span></div></div>
+
+    <div class="row"><span class="no">9-3</span><div class="who w-blue"><small>View</small><b>→ resp</b></div><div class="call"><code class="hl-line">resp.setContentType("text/html;charset=UTF-8");</code><span class="why">응답 형식 설정</span></div></div>
+
+    <div class="row"><span class="no">9-4</span><div class="who w-blue"><small>View</small><b>→ resp</b></div><div class="call"><code class="hl-line">resp.getWriter().write(html);</code><span class="why">완성된 HTML을 Response에 기록 (끝나면 render가 반환됨)</span></div></div>
+
+    <div class="seq-title" id="g10" style="margin-top:26px">10. 톰캣 내부 순서 (1번 그룹을 감싸는 앞뒤)</div>
+
+    <div class="row"><span class="no">10-1</span><div class="who w-teal"><small>톰캣 (Connector)</small><b>→ 소켓</b></div><div class="call"><code class="hl-line">Socket socket = serverSocket.accept();</code><span class="why">연결을 받음 (요청 하나를 스레드 하나가 맡음)</span></div></div>
+
+    <div class="row"><span class="no">10-2</span><div class="who w-teal"><small>톰캣 (Connector)</small><b>→ 요청 객체</b></div><div class="call"><code class="hl-line">Request req = parse(socket.getInputStream());</code><span class="why">HTTP 글자를 해석해 요청 객체를 만듦</span></div></div>
+
+    <div class="row"><span class="no">10-3</span><div class="who w-teal"><small>톰캣 (Connector)</small><b>→ 응답 객체</b></div><div class="call"><code class="hl-line">Response resp = new Response(socket.getOutputStream());</code><span class="why">비어 있는 응답 객체를 만듦</span></div></div>
+
+    <div class="row"><span class="no">10-4</span><div class="who w-teal"><small>서블릿 컨테이너</small><b>→ 서블릿 선택</b></div><div class="call"><code class="hl-line">Servlet target = pickByUrlPattern(req.getPath());</code><span class="why">URL 패턴으로 서블릿 선택 (보통 / 패턴의 DispatcherServlet)</span></div></div>
+
+    <div class="row"><span class="no">10-5</span><div class="who w-purple"><small>서블릿 컨테이너</small><b>→ 필터 → DispatcherServlet</b></div><div class="call"><code class="hl-line">new FilterChain(filters, target).doFilter(req, resp);</code><span class="why">필터들을 거쳐 target.service(req, resp)를 호출 → 1-1번이 시작됨</span></div></div>
+
+    <div class="row"><span class="no">10-6</span><div class="who w-teal"><small>톰캣 (Connector)</small><b>→ 소켓</b></div><div class="call"><code class="hl-line">resp.flush();</code><span class="why">service()가 끝나면 resp를 HTTP 글자로 바꿔 소켓으로 전송</span></div></div>
+  </div>
+  <div class="note"><b>읽는 요령</b> 같은 색의 이름은 같은 값입니다. 예를 들어 1-5번에서 돌아온 <code>mv</code>(빨강)가 1-6, 1-7, 1-8번에서 계속 쓰이고, 3-10번의 반환이 바로 그 <code>mv</code>가 됩니다. 마찬가지로 4-6번의 <code>value</code>는 3-4번의 <code>args[i]</code>로 이어지고, 2-7번의 반환은 1-2번의 <code>chain</code>이 됩니다. 이렇게 <b>그룹의 마지막 반환이 다른 그룹의 변수로 이어진다</b>는 점을 따라가며 보세요.</div>
+</section>
+
+<section id="legend">
+  <h2>색 범례</h2>
+  <p class="lead">같은 색이면 같은 종류의 값입니다. 이름이 비슷해도 색으로 구분하세요.</p>
+  <div class="card">
+    <div class="legend">
+      <div><span class="v req">req</span><span class="v req">resp</span><span class="v req">web</span><span class="desc">톰캣이 만든 request, response (web은 둘을 묶은 것)</span></div>
+      <div><span class="v chain">chain</span><span class="v chain">mapping</span><span class="desc">HandlerMapping이 돌려준 "핸들러 + 인터셉터" 묶음</span></div>
+      <div><span class="v handler">handlerMethod</span><span class="v handler">method</span><span class="v handler">bean</span><span class="desc">컨트롤러 객체와 메서드</span></div>
+      <div><span class="v adapter">adapter</span><span class="v adapter">resolver</span><span class="v adapter">returnHandler</span><span class="desc">일을 맡아 하는 부품들</span></div>
+      <div><span class="v args">args</span><span class="v args">parameter</span><span class="v args">returnType</span><span class="desc">메서드의 매개변수와 반환 타입 정보, 그 값들</span></div>
+      <div><span class="v result">result</span><span class="v result">value</span><span class="desc">컨트롤러 메서드가 돌려준 반환값</span></div>
+      <div><span class="v mav">mav</span><span class="v mav">model</span><span class="v mav">viewName</span><span class="v mav">handled</span><span class="desc">보관함과 그 안의 칸들</span></div>
+      <div><span class="v mv">mv</span><span class="desc">어댑터가 돌려주는 ModelAndView (데이터 응답이면 null)</span></div>
+      <div><span class="v view">view</span><span class="desc">뷰 이름으로 찾은 View 객체</span></div>
+      <div><span class="v misc">ok</span><span class="v misc">go</span><span class="v misc">ex</span><span class="v misc">converter</span><span class="desc">판단 결과, 예외, 변환기 같은 보조 값</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <h2>값의 이동 한눈에</h2>
+  <p class="lead">색이 바뀌는 곳이 "새 값이 만들어지는 곳"입니다.</p>
+  <div class="card">
+    <div class="strip">
+      <span class="v req">req</span><span class="ar">→ getHandler →</span>
+      <span class="v chain">chain</span><span class="ar">→ handler() →</span>
+      <span class="v handler">handlerMethod</span><span class="ar">→ handle →</span>
+      <span class="v args">args</span><span class="ar">→ invoke →</span>
+      <span class="v result">result</span><span class="ar">→ handleReturnValue →</span>
+      <span class="v mav">mav</span><span class="ar">→ 반환 →</span>
+      <span class="v mv">mv</span><span class="ar">→ resolveViewName →</span>
+      <span class="v view">view</span><span class="ar">→ render →</span>
+      <span class="step">Response에 HTML</span>
+    </div>
+  </div>
+</section>
+
+<section id="a">
+  <div class="grp"><span class="badge">A</span><h2>핸들러 찾기와 준비</h2></div>
+  <p class="lead">DispatcherServlet.doDispatch 안 · 어댑터를 부르기 전까지</p>
+<pre class="hl"><code>// ① 핸들러 찾기 (매핑마다 반복)
+HandlerExecutionChain chain = mapping.getHandler(req);     // null이면 다음 매핑, 전부 null이면 404
+
+// ② 어댑터 고르기 (어댑터마다 반복)
+boolean ok = adapter.supports(chain.handler());            // true라고 답한 첫 어댑터를 선택
+
+// ③ 실행 전 인터셉터
+boolean go = chain.applyPreHandle(req, resp);              // false면 여기서 중단</code></pre>
+  <div class="note"><b>색으로 보기</b> <code class="hl">req</code>가 들어가 <code class="hl">chain</code>이 만들어지고, <code class="hl">chain</code>에서 핸들러를 꺼내(<code>chain.handler()</code>) 어댑터를 고릅니다. 두 번째 줄의 <code class="hl">adapter</code>는 "고르는 대상"이고, <code class="hl">ok</code>가 true인 것이 선택됩니다.</div>
+</section>
+
+<section id="b">
+  <div class="grp"><span class="badge">B</span><h2>실행</h2></div>
+  <p class="lead">DispatcherServlet이 어댑터를 호출하는 한 줄과, 그 안쪽에서 일어나는 일</p>
+
+  <p class="callee">DispatcherServlet 쪽</p>
+<pre class="hl"><code>// ④ 어댑터 실행: 핸들러만 넘기고 mv를 돌려받음
+ModelAndView mv = adapter.handle(req, resp, chain.handler());</code></pre>
+
+  <p class="callee" style="margin-top:16px">adapter.handle() 안쪽 (넘겨받은 chain.handler()가 handlerMethod)</p>
+<pre class="hl"><code>// 보관함은 요청마다 새로 만듦
+ModelAndViewContainer mav = new ModelAndViewContainer();
+
+// ⑤ 매개변수 값 준비 (매개변수마다 반복)
+boolean ok = resolver.supports(parameter);                       // 첫 true를 선택
+args[i] = resolver.resolveArgument(parameter, mav, web);        // 그 매개변수에 넣을 값
+
+// ⑥ 컨트롤러 메서드 실행
+Object result = method.invoke(bean, args);                      // 반환값이 result에 담김
+
+// ⑦ 반환값 처리
+boolean ok = returnHandler.supports(returnType);                 // 첫 true를 선택
+returnHandler.handleReturnValue(result, returnType, mav, web);  // 데이터: JSON 기록 / 화면: 뷰 이름 저장
+converter.write(value, mediaType, outputMessage);               // 데이터 응답일 때만, Response에 JSON 기록
+
+// ⑧ DispatcherServlet에 돌려줌
+return mav.isRequestHandled() ? null : new ModelAndView(mav.getViewName(), mav.getModel());      // 데이터 응답이면 null</code></pre>
+  <div class="note"><b>색으로 보기</b> 안쪽에서 <code class="hl">args</code>가 만들어지고 → <code class="hl">result</code>가 나오고 → <code class="hl">mav</code>에 결과가 담기고 → 마지막에 <code class="hl">mv</code>로 포장되어 위쪽 한 줄의 <code class="hl">mv</code>로 돌아옵니다. <code class="hl">mav</code>는 resolveArgument와 handleReturnValue에 계속 넘겨져서 <b>보관함이 하나의 요청 안에서 공유</b>됩니다.</div>
+  <div class="warn"><b>이름 주의</b> 안쪽의 <code class="hl">returnHandler</code>는 "반환값 처리 담당"이고, 바깥의 <code>chain.handler()</code>는 "실행할 컨트롤러 메서드"입니다. 둘 다 handler라는 말이 들어가서 헷갈리기 쉬워 일부러 이름을 나눴습니다.</div>
+</section>
+
+<section id="c">
+  <div class="grp"><span class="badge">C</span><h2>마무리</h2></div>
+  <p class="lead">어댑터에서 돌아온 뒤 · 응답이 나가기 전까지</p>
+<pre class="hl"><code>// ⑨ 실행 후 인터셉터
+chain.applyPostHandle(req, resp, mv);                            // 뒤에서부터 실행
+
+// ⑩ 화면 응답일 때만 (mv가 null이 아닐 때)
+View view = viewResolver.resolveViewName(mv.getViewName());     // 뷰 이름으로 View 찾기
+view.render(mv.getModel(), req, resp);                           // Model 값으로 HTML을 만들어 Response에 기록
+
+// ⑪ 마무리 인터셉터 (예외가 나도 실행)
+chain.triggerAfterCompletion(req, resp, ex);
+
+// 이후 톰캣이 resp를 HTTP 글자로 바꿔 소켓으로 전송</code></pre>
+  <div class="note"><b>색으로 보기</b> <code class="hl">mv</code>가 <code class="hl">view</code>를 찾는 데(뷰 이름)와 렌더링하는 데(Model) 두 번 쓰입니다. 데이터 응답이면 <code class="hl">mv</code>가 null이라서 ⑩은 통째로 건너뜁니다.</div>
+</section>
+
+<section id="vars">
+  <h2>변수 정리표</h2>
+  <p class="lead">어디서 만들어지고 어디에 쓰이는지</p>
+  <div class="scroll">
+  <table>
+    <tr><th>변수</th><th>무엇인가</th><th>만들어지는 곳</th><th>쓰이는 곳</th></tr>
+    <tr><td><code class="hl">req</code>, <code class="hl">resp</code></td><td>톰캣이 만든 요청, 응답 객체</td><td>톰캣 (service 호출 전)</td><td>거의 모든 호출</td></tr>
+    <tr><td><code class="hl">chain</code></td><td>핸들러 + 인터셉터 묶음</td><td><code>getHandler(req)</code>의 반환</td><td>supports, applyPreHandle, handle, applyPostHandle, triggerAfterCompletion</td></tr>
+    <tr><td><code class="hl">handlerMethod</code></td><td>컨트롤러 객체 + 메서드 한 쌍</td><td>체인 안에 들어 있음 (<code>chain.handler()</code>)</td><td>supports, adapter.handle</td></tr>
+    <tr><td><code class="hl">adapter</code></td><td>고른 어댑터</td><td>supports가 true인 첫 어댑터</td><td>adapter.handle</td></tr>
+    <tr><td><code class="hl">mav</code></td><td>요청마다 만드는 보관함</td><td>adapter.handle 시작 부분</td><td>resolveArgument, handleReturnValue, 마지막 반환 결정</td></tr>
+    <tr><td><code class="hl">args</code></td><td>매개변수에 넣을 값들의 배열</td><td>resolveArgument의 반환들</td><td>method.invoke</td></tr>
+    <tr><td><code class="hl">result</code></td><td>컨트롤러가 돌려준 값</td><td>method.invoke의 반환</td><td>handleReturnValue</td></tr>
+    <tr><td><code class="hl">mv</code></td><td>뷰 이름 + Model (또는 null)</td><td>adapter.handle의 반환</td><td>applyPostHandle, resolveViewName, render</td></tr>
+    <tr><td><code class="hl">view</code></td><td>찾은 View 객체</td><td>resolveViewName의 반환</td><td>view.render</td></tr>
+  </table>
+  </div>
+</section>
+
+<section id="diff">
+  <h2>데이터 응답과 화면 응답: 달라지는 줄만</h2>
+  <p class="lead">같은 코드에서 갈라지는 부분만 나란히 봅니다.</p>
+  <details open>
+    <summary>데이터 응답 (@RestController)</summary>
+<pre class="hl"><code>returnHandler.handleReturnValue(result, returnType, mav, web);  // 컨버터로 JSON을 Response에 기록
+// handled = true 로 표시됨
+
+return mav.isRequestHandled() ? null : new ModelAndView(mav.getViewName(), mav.getModel());      // null 반환
+// → mv == null
+
+chain.applyPostHandle(req, resp, mv);
+// mv가 null이므로 resolveViewName, render는 실행되지 않음
+chain.triggerAfterCompletion(req, resp, ex);</code></pre>
+  </details>
+  <details open>
+    <summary>화면 응답 (@Controller + 뷰 이름)</summary>
+<pre class="hl"><code>returnHandler.handleReturnValue(result, returnType, mav, web);  // 뷰 이름을 mav.viewName에 저장만 함
+// handled = false 그대로
+
+return mav.isRequestHandled() ? null : new ModelAndView(mav.getViewName(), mav.getModel());      // ModelAndView 반환
+// → mv = (뷰 이름, Model)
+
+chain.applyPostHandle(req, resp, mv);
+View view = viewResolver.resolveViewName(mv.getViewName());
+view.render(mv.getModel(), req, resp);                           // HTML을 Response에 기록
+chain.triggerAfterCompletion(req, resp, ex);</code></pre>
+  </details>
+</section>
+
+<section id="all">
+  <h2>전체 코드 모아보기</h2>
+  <p class="lead">복사해서 두고 볼 수 있게 한 곳에 묶었습니다.</p>
+  <details>
+    <summary>펼쳐서 전체 보기</summary>
+<pre class="hl"><code>// ===== DispatcherServlet.doDispatch (요약) =====
+HandlerExecutionChain chain = mapping.getHandler(req);
+boolean ok = adapter.supports(chain.handler());
+boolean go = chain.applyPreHandle(req, resp);
+ModelAndView mv = adapter.handle(req, resp, chain.handler());
+chain.applyPostHandle(req, resp, mv);
+View view = viewResolver.resolveViewName(mv.getViewName());   // mv가 null이 아닐 때만
+view.render(mv.getModel(), req, resp);                         // mv가 null이 아닐 때만
+chain.triggerAfterCompletion(req, resp, ex);
+
+// ===== adapter.handle 안쪽 =====
+ModelAndViewContainer mav = new ModelAndViewContainer();
+boolean ok = resolver.supports(parameter);
+args[i] = resolver.resolveArgument(parameter, mav, web);
+Object result = method.invoke(bean, args);
+boolean ok = returnHandler.supports(returnType);
+returnHandler.handleReturnValue(result, returnType, mav, web);
+converter.write(value, mediaType, outputMessage);              // 데이터 응답일 때만
+return mav.isRequestHandled() ? null : new ModelAndView(mav.getViewName(), mav.getModel());</code></pre>
+  </details>
+</section>
+
+<footer>
+  <p>코드는 이해를 돕기 위해 줄이고 이름을 단순화한 것이며 실제 스프링 소스가 아닙니다. 실제로는 <code>web</code>이 <code>ServletWebRequest</code>, <code>mav</code>가 <code>ModelAndViewContainer</code>이고, 반환 타입과 메서드 이름이 조금 다릅니다. 정확한 동작은 <code>DispatcherServlet.doDispatch</code>에 중단점을 걸고 확인하세요.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var MAP = {
+    req: 'req', resp: 'req', web: 'req',
+    chain: 'chain', mapping: 'chain',
+    handlerMethod: 'handler', method: 'handler', bean: 'handler',
+    adapter: 'adapter', resolver: 'adapter', returnHandler: 'adapter', viewResolver: 'adapter',
+    args: 'args', parameter: 'args', returnType: 'args',
+    result: 'result', value: 'result',
+    mav: 'mav', model: 'mav', viewName: 'mav', handled: 'mav',
+    mv: 'mv', view: 'view',
+    converter: 'misc', mediaType: 'misc', outputMessage: 'misc', ok: 'misc', go: 'misc', ex: 'misc',
+    path: 'req', candidates: 'handler', best: 'handler',
+    interceptors: 'view', interceptor: 'view',
+    raw: 'args', json: 'result', objectMapper: 'misc',
+    templatePath: 'view', html: 'view', key: 'mav',
+    socket: 'misc', serverSocket: 'misc', target: 'adapter', filters: 'misc'
+  };
+  var TYPES = {HandlerExecutionChain:1, ModelAndView:1, View:1, Object:1, "boolean":1, ModelAndViewContainer:1, "void":1,
+    String:1, Match:1, List:1, Socket:1, Request:1, Response:1, Servlet:1, HttpMessageConverter:1,
+    HttpOutputMessage:1, HandlerInterceptor:1, FilterChain:1, TemplateView:1, "byte":1, "int":1, MissingParameterException:1, ServletWebRequest:1, MethodParameter:1};
+  var KW = {"return":1, "new":1, "null":1, "true":1, "false":1, "if":1, "throw":1, "for":1};
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function highlight(text) {
+    var re = /(\/\/.*)|([A-Za-z_]\w*)/g;
+    var out = '', last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      out += esc(text.slice(last, m.index));
+      if (m[1]) {
+        out += '<span class="cm">' + esc(m[1]) + '</span>';
+      } else {
+        var w = m[2];
+        var prev = text.charAt(m.index - 1);
+        if (prev === '.') out += esc(w);
+        else if (MAP.hasOwnProperty(w)) out += '<span class="v ' + MAP[w] + '">' + w + '</span>';
+        else if (TYPES.hasOwnProperty(w)) out += '<span class="ty">' + w + '</span>';
+        else if (KW.hasOwnProperty(w)) out += '<span class="kw">' + w + '</span>';
+        else out += esc(w);
+      }
+      last = re.lastIndex;
+    }
+    return out + esc(text.slice(last));
+  }
+
+  document.querySelectorAll('pre.hl code').forEach(function (el) {
+    el.innerHTML = highlight(el.textContent);
+  });
+  document.querySelectorAll('code.hl-line').forEach(function (el) {
+    el.innerHTML = highlight(el.textContent);
+  });
+  document.querySelectorAll('code.hl').forEach(function (el) {
+    var cls = MAP[el.textContent.trim()];
+    if (cls) el.innerHTML = '<span class="v ' + cls + '">' + esc(el.textContent) + '</span>';
+  });
+})();
+</script>
+</body>
+</html>

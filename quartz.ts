@@ -17,7 +17,7 @@ componentRegistry.setOptionOverrides("@quartz-community/explorer", {
     if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1
     // 최상위 카테고리는 정해 둔 순서대로, 새로 생긴 폴더는 그 뒤, 회고는 항상 맨 끝
     // (이 함수는 브라우저로 직렬화되므로 이름 붙인 보조 함수를 만들지 않는다)
-    const order = ["01_java", "03_디자인-패턴", "05_git", "06_cs", "네트워크"]
+    const order = ["01_java", "03_디자인-패턴", "05_git", "06_cs", "네트워크", "07_백엔드"]
     const ia = order.indexOf(a.slugSegment)
     const ib = order.indexOf(b.slugSegment)
     const ra = !a.isFolder ? -1 : a.slugSegment === "회고" ? 1000 : ia >= 0 ? ia : 500

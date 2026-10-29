@@ -742,6 +742,11 @@ body[data-slug="index"] {
   color: #0b7bb0;
 }
 
+.cat-card[data-tone="7"] .cat-no {
+  background: rgba(16, 185, 129, 0.16);
+  color: #0b8a5f;
+}
+
 html[saved-theme="dark"] {
   & .cat-card[data-tone="2"] .cat-no {
     color: var(--tertiary);
@@ -761,6 +766,10 @@ html[saved-theme="dark"] {
 
   & .cat-card[data-tone="6"] .cat-no {
     color: #7fd0f5;
+  }
+
+  & .cat-card[data-tone="7"] .cat-no {
+    color: #6fdcb4;
   }
 }
 

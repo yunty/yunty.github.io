@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스프링 MVC 코드 따라가기</title>
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --text:#1f1f1d; --muted:#6b6a64; --line:#e3e1d8;
+  --accent:#534ab7; --accent-bg:#eeedfe;
+  --teal:#0f6e56; --teal-bg:#e1f5ee;
+  --amber:#854f0b; --amber-bg:#faeeda;
+  --coral:#993c1d; --coral-bg:#faece7;
+  --code-bg:#f1efe8; --code-text:#2b2a27;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1c1c1a; --card:#262624; --text:#ecebe4; --muted:#a3a198; --line:#3a3a36;
+    --accent:#afa9ec; --accent-bg:#2b2848;
+    --teal:#5dcaa5; --teal-bg:#10372d;
+    --amber:#fac775; --amber-bg:#3d2c10;
+    --coral:#f0997b; --coral-bg:#3d2016;
+    --code-bg:#1f1f1d; --code-text:#e6e4dc;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.7;font-size:16px}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 90px}
+header{padding:40px 0 16px}
+h1{font-size:28px;margin:0 0 6px;font-weight:600}
+.sub{color:var(--muted);margin:0}
+nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+nav a{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:3px 10px;border-radius:99px;background:var(--card)}
+nav a:hover{color:var(--accent);border-color:var(--accent)}
+section{margin-top:42px;scroll-margin-top:60px}
+h2{font-size:22px;margin:0 0 6px;font-weight:600}
+h3{font-size:16px;margin:22px 0 4px;font-weight:600}
+.lead{color:var(--muted);margin:0 0 14px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.tag{display:inline-block;font-size:12px;padding:1px 9px;border-radius:99px;font-weight:500;margin-right:6px}
+.t-purple{background:var(--accent-bg);color:var(--accent)}
+.t-teal{background:var(--teal-bg);color:var(--teal)}
+.t-amber{background:var(--amber-bg);color:var(--amber)}
+.t-coral{background:var(--coral-bg);color:var(--coral)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13.5px}
+.flow .n{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 10px}
+.flow .p{background:var(--accent-bg);border-color:transparent;color:var(--accent)}
+.flow .t{background:var(--teal-bg);border-color:transparent;color:var(--teal)}
+.flow .a{background:var(--amber-bg);border-color:transparent;color:var(--amber)}
+.flow .c{background:var(--coral-bg);border-color:transparent;color:var(--coral)}
+.flow .ar{color:var(--muted)}
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13px;line-height:1.65;margin:8px 0 0;border:1px solid var(--line)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace}
+p code,li code,td code{background:var(--code-bg);padding:1px 6px;border-radius:5px;font-size:13px}
+pre code{background:none;padding:0}
+.file{display:inline-block;font-size:12px;color:var(--muted);margin-top:14px;font-family:ui-monospace,Menlo,monospace}
+.note{border-left:4px solid var(--accent);background:var(--accent-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:14.5px}
+.warn{border-left:4px solid var(--coral);background:var(--coral-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:14.5px}
+.ok{border-left:4px solid var(--teal);background:var(--teal-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+ul{margin:6px 0 0;padding-left:20px}
+li{margin:3px 0;font-size:15px}
+.step{display:inline-block;background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;text-align:center;font-size:12px;line-height:22px;margin-right:6px}
+footer{margin-top:50px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>스프링 MVC 코드 따라가기</h1>
+  <p class="sub">요청 하나가 지나가는 순서대로, 각 클래스 안에서 일어나는 일을 줄인 코드로 보기</p>
+</header>
+
+<nav>
+  <a href="#intro">읽기 전에</a>
+  <a href="#types">공통 타입</a>
+  <a href="#tomcat">톰캣 → 서블릿</a>
+  <a href="#ds">DispatcherServlet</a>
+  <a href="#hm">HandlerMapping</a>
+  <a href="#ha">HandlerAdapter</a>
+  <a href="#vr">ViewResolver</a>
+  <a href="#view">View</a>
+  <a href="#trace">실행 순서 로그</a>
+  <a href="#real">실제 클래스 대응</a>
+</nav>
+
+<section id="intro">
+  <h2>읽기 전에</h2>
+  <div class="card">
+    <div class="flow">
+      <span class="n">HTTP 요청</span><span class="ar">→</span>
+      <span class="n t">톰캣</span><span class="ar">→</span>
+      <span class="n p">DispatcherServlet</span><span class="ar">→</span>
+      <span class="n a">HandlerMapping</span><span class="ar">→</span>
+      <span class="n a">HandlerAdapter</span><span class="ar">→</span>
+      <span class="n c">내 컨트롤러</span><span class="ar">→</span>
+      <span class="n p">DispatcherServlet</span><span class="ar">→</span>
+      <span class="n a">ViewResolver</span><span class="ar">→</span>
+      <span class="n a">View</span><span class="ar">→</span>
+      <span class="n t">톰캣</span><span class="ar">→</span>
+      <span class="n">HTTP 응답</span>
+    </div>
+  </div>
+  <div class="warn"><b>꼭 알아 두세요</b> 아래 코드는 흐름을 이해하도록 <b>직접 줄여 쓴 교육용 코드</b>입니다. 실제 스프링 소스는 수천 줄이어서 통째로 보여 드리지 않고, 같은 역할과 같은 호출 순서를 가진 핵심만 남겼습니다. 이름과 구조는 실제와 비슷하지만 세부(인터셉터, 비동기, 데이터 바인딩, 캐시 등)는 생략했습니다. 정확한 동작은 맨 아래 <a href="#real">실제 클래스 대응표</a>의 위치에 중단점을 걸고 디버깅하며 확인하세요.</div>
+  <div class="ok"><b>읽는 요령</b> 각 클래스마다 ① 언제 호출되나 ② 받는 것 ③ 하는 일 ④ 내놓는 것 순서로 읽으면 앞뒤가 연결됩니다.</div>
+</section>
+
+<section id="types">
+  <h2>0. 먼저 공통으로 쓰이는 타입</h2>
+  <p class="lead">아래 코드에 계속 나오는 이름들입니다. 모양만 눈에 익혀 두면 됩니다.</p>
+<pre><code>// 부품들의 약속 (인터페이스)
+interface HandlerMapping {
+    HandlerExecutionChain getHandler(HttpServletRequest request);     // 이 요청을 처리할 핸들러 찾기
+}
+
+interface HandlerAdapter {
+    boolean supports(Object handler);                                 // 이 핸들러를 내가 호출할 수 있나?
+    ModelAndView handle(HttpServletRequest req, HttpServletResponse resp, Object handler) throws Exception;
+}
+
+interface ViewResolver {
+    View resolveViewName(String viewName);                            // 뷰 이름 → View 객체 (못 찾으면 null)
+}
+
+interface View {
+    void render(Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse resp) throws Exception;
+}
+
+// 데이터 묶음들
+record HandlerMethod(Object bean, Method method) { }                  // "컨트롤러 객체 + 메서드" 한 쌍
+
+record HandlerExecutionChain(HandlerMethod handler, List&lt;HandlerInterceptor&gt; interceptors) { }
+
+class ModelAndView {                                                   // 뷰 이름 + 채울 데이터
+    String viewName;
+    Map&lt;String, Object&gt; model;
+}
+
+class ModelAndViewContainer {                                          // 요청 하나 동안 쓰는 보관함
+    Map&lt;String, Object&gt; model = new LinkedHashMap&lt;&gt;();               // Model 칸
+    String viewName;                                                   // 뷰 이름 칸
+    boolean requestHandled = false;                                    // 응답을 이미 썼나?
+}</code></pre>
+</section>
+
+<section id="tomcat">
+  <h2>1. 톰캣이 서블릿을 부르는 곳</h2>
+  <p class="lead"><span class="tag t-teal">톰캣</span>Connector가 Request/Response 객체를 만든 뒤, 서블릿 컨테이너가 서블릿을 호출합니다.</p>
+<pre><code>// 톰캣 쪽 (줄인 모양)
+void invoke(Request req, Response resp) {
+    Servlet target = pickByUrlPattern(req.getPath());        // "/" 패턴 → DispatcherServlet
+    new FilterChain(filters, target).doFilter(req, resp);    // 필터를 거친 뒤 target.service(req, resp) 호출
+}</code></pre>
+  <p class="lead" style="margin-top:10px">여기까지가 톰캣의 일입니다. 이제 <code>service(req, resp)</code>가 호출되는 순간부터 스프링 코드가 시작됩니다.</p>
+</section>
+
+<section id="ds">
+  <h2>2. DispatcherServlet</h2>
+  <p class="lead"><span class="tag t-purple">지휘자</span>부품들의 목록을 들고 있다가, 요청이 오면 순서대로 부릅니다.</p>
+
+  <h3>2-1. 앱이 켜질 때: 부품 목록 채우기</h3>
+<pre><code>public class DispatcherServlet extends HttpServlet {
+
+    private List&lt;HandlerMapping&gt; handlerMappings;
+    private List&lt;HandlerAdapter&gt; handlerAdapters;
+    private List&lt;ViewResolver&gt;   viewResolvers;
+
+    // 톰캣이 서블릿을 만든 직후 한 번 호출 (init)
+    @Override
+    public void init() {
+        // 스프링 컨테이너에서 해당 타입의 빈을 모두 꺼내 필드에 저장
+        this.handlerMappings = context.getBeansOfType(HandlerMapping.class);
+        this.handlerAdapters = context.getBeansOfType(HandlerAdapter.class);
+        this.viewResolvers   = context.getBeansOfType(ViewResolver.class);
+    }</code></pre>
+
+  <h3>2-2. 요청이 올 때: service → doDispatch</h3>
+<pre><code>    // 톰캣이 요청마다 호출
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        // 실제로는 service → doGet → processRequest → doService 를 거쳐 doDispatch 에 도착
+        doDispatch(req, resp);
+    }
+
+    protected void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+
+        // ① 핸들러 찾기
+        HandlerExecutionChain chain = getHandler(req);
+        if (chain == null) { resp.sendError(404); return; }
+
+        // ② 이 핸들러를 호출할 어댑터 고르기
+        HandlerAdapter adapter = getHandlerAdapter(chain.handler());
+
+        // ③ 실행: 인자 준비 → 메서드 호출 → 반환값 처리는 어댑터 안에서
+        ModelAndView mv = adapter.handle(req, resp, chain.handler());
+
+        // ④ 결과 처리: 화면 응답이면 렌더링
+        processDispatchResult(req, resp, mv);
+    }</code></pre>
+
+  <h3>2-3. doDispatch가 부르는 도우미 메서드들</h3>
+<pre><code>    // 핸들러 찾기: 매핑들에게 차례로 묻기
+    private HandlerExecutionChain getHandler(HttpServletRequest req) {
+        for (HandlerMapping mapping : this.handlerMappings) {
+            HandlerExecutionChain chain = mapping.getHandler(req);
+            if (chain != null) return chain;                 // 처음으로 찾은 것을 사용
+        }
+        return null;
+    }
+
+    // 어댑터 고르기: 어댑터들에게 차례로 묻기
+    private HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
+        for (HandlerAdapter adapter : this.handlerAdapters) {
+            if (adapter.supports(handler)) return adapter;
+        }
+        throw new ServletException("이 핸들러를 처리할 어댑터가 없습니다");
+    }
+
+    // 결과 처리
+    private void processDispatchResult(HttpServletRequest req, HttpServletResponse resp, ModelAndView mv) throws Exception {
+        if (mv == null) return;               // 데이터 응답: 어댑터 안에서 이미 Response에 썼으므로 할 일 없음
+        render(mv, req, resp);                // 화면 응답: 렌더링
+    }
+
+    // 화면 만들기: ViewResolver → View → render
+    private void render(ModelAndView mv, HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        View view = resolveViewName(mv.viewName);
+        view.render(mv.model, req, resp);
+    }
+
+    private View resolveViewName(String viewName) throws ServletException {
+        for (ViewResolver resolver : this.viewResolvers) {
+            View view = resolver.resolveViewName(viewName);
+            if (view != null) return view;
+        }
+        throw new ServletException("뷰를 찾을 수 없습니다: " + viewName);
+    }
+}</code></pre>
+  <div class="note"><b>핵심</b> DispatcherServlet은 직접 일하지 않고 <b>"누구에게 물을지, 결과를 누구에게 넘길지"</b>만 정합니다. 위 코드에는 <code>for</code> 문으로 부품에게 묻는 모양이 반복됩니다.</div>
+</section>
+
+<section id="hm">
+  <h2>3. HandlerMapping</h2>
+  <p class="lead"><span class="tag t-amber">부품</span>"주소 + HTTP 메서드 → HandlerMethod" 표를 가지고 있다가, 요청이 오면 찾아 줍니다.</p>
+
+  <h3>3-1. 앱이 켜질 때: 표 만들기 (한 번)</h3>
+<pre><code>public class RequestMappingHandlerMapping implements HandlerMapping {
+
+    // 표: 조건 → 호출 대상
+    private final Map&lt;RequestMappingInfo, HandlerMethod&gt; registry = new LinkedHashMap&lt;&gt;();
+    private final List&lt;HandlerInterceptor&gt; interceptors;
+
+    // 스프링이 이 빈을 만든 직후 호출
+    public void afterPropertiesSet() {
+        for (Object bean : context.getBeansWithAnnotation(Controller.class)) {      // 컨트롤러 빈들을 훑으며
+            for (Method m : bean.getClass().getDeclaredMethods()) {                 // 메서드마다
+                RequestMappingInfo info = createInfo(m);                            // @GetMapping 등을 읽음
+                if (info != null) {
+                    registry.put(info, new HandlerMethod(bean, m));                 // 객체 + 메서드를 짝지어 저장
+                }
+            }
+        }
+    }
+
+    private RequestMappingInfo createInfo(Method m) {
+        GetMapping get = m.getAnnotation(GetMapping.class);
+        if (get != null) return new RequestMappingInfo(get.value(), "GET");
+        PostMapping post = m.getAnnotation(PostMapping.class);
+        if (post != null) return new RequestMappingInfo(post.value(), "POST");
+        return null;                                                                // 매핑 애너테이션이 없으면 대상 아님
+    }</code></pre>
+
+  <h3>3-2. 요청이 올 때: 표에서 찾기</h3>
+<pre><code>    @Override
+    public HandlerExecutionChain getHandler(HttpServletRequest req) {
+        HandlerMethod best = null;
+        RequestMappingInfo bestInfo = null;
+
+        for (var entry : registry.entrySet()) {
+            RequestMappingInfo info = entry.getKey();
+            if (info.matches(req)) {                                 // HTTP 메서드와 주소 패턴 비교
+                if (bestInfo == null || info.isMoreSpecificThan(bestInfo)) {
+                    best = entry.getValue();                         // 여러 개 맞으면 더 구체적인 것
+                    bestInfo = info;
+                }
+            }
+        }
+        if (best == null) return null;                               // 못 찾으면 다음 HandlerMapping에게 넘어감
+        return new HandlerExecutionChain(best, interceptors);
+    }
+}
+
+record RequestMappingInfo(String pattern, String httpMethod) {
+    boolean matches(HttpServletRequest req) {
+        return httpMethod.equals(req.getMethod())
+            &amp;&amp; pathMatches(pattern, req.getRequestURI());           // "/todos/{id}" 같은 패턴도 비교
+        // {id} 값은 여기서 뽑아 request 속성에 저장해 둠 (@PathVariable이 나중에 꺼내 씀)
+    }
+}</code></pre>
+  <div class="note"><b>핵심</b> 표는 <b>시작할 때 한 번</b> 만들고, 요청마다 <b>조회만</b> 합니다. 그래서 <code>@GetMapping</code>을 고치면 재시작이 필요합니다.</div>
+</section>
+
+<section id="ha">
+  <h2>4. HandlerAdapter</h2>
+  <p class="lead"><span class="tag t-amber">부품</span>매개변수를 채우고, 메서드를 실행하고, 반환값을 처리하는 곳입니다. 코드가 가장 많아서 4-1부터 4-4까지 나눠 봅니다.</p>
+
+  <h3>4-1. handle(): 전체 뼈대</h3>
+<pre><code>public class RequestMappingHandlerAdapter implements HandlerAdapter {
+
+    private List&lt;ArgumentResolver&gt;   argumentResolvers;     // 매개변수 값을 만드는 전문가들
+    private List&lt;ReturnValueHandler&gt; returnValueHandlers;   // 반환값을 다루는 전문가들
+
+    @Override
+    public boolean supports(Object handler) {
+        return handler instanceof HandlerMethod;               // @GetMapping 메서드 종류만 내가 호출
+    }
+
+    @Override
+    public ModelAndView handle(HttpServletRequest req, HttpServletResponse resp, Object handler) throws Exception {
+        HandlerMethod hm = (HandlerMethod) handler;
+        ServletWebRequest webRequest = new ServletWebRequest(req, resp);   // 요청과 응답을 묶음
+        ModelAndViewContainer mav = new ModelAndViewContainer();           // 요청마다 새 보관함
+
+        // ① 매개변수 값 준비
+        Object[] args = resolveArguments(hm, webRequest, mav);
+
+        // ② 메서드 호출 (리플렉션)
+        Object result = hm.method().invoke(hm.bean(), args);
+
+        // ③ 반환값 처리 (데이터면 Response에 기록, 화면이면 뷰 이름 저장)
+        handleReturnValue(result, hm.method(), mav, webRequest);
+
+        // ④ 돌려줄 값 결정
+        if (mav.requestHandled) return null;                    // 데이터 응답: 이미 Response에 썼음
+        ModelAndView mv = new ModelAndView();
+        mv.viewName = mav.viewName;                             // 화면 응답: 뷰 이름과 Model을 묶어 반환
+        mv.model = mav.model;
+        return mv;
+    }</code></pre>
+
+  <h3>4-2. ① 매개변수 값 준비: Resolver에게 묻기</h3>
+<pre><code>    private Object[] resolveArguments(HandlerMethod hm, ServletWebRequest web, ModelAndViewContainer mav) throws Exception {
+        Parameter[] params = hm.method().getParameters();       // 메서드에 선언된 매개변수들
+        Object[] args = new Object[params.length];
+
+        for (int i = 0; i &lt; params.length; i++) {
+            ArgumentResolver found = null;
+            for (ArgumentResolver r : argumentResolvers) {
+                if (r.supports(params[i])) { found = r; break; }   // 처음으로 "예"라고 한 Resolver
+            }
+            args[i] = found.resolve(params[i], web, mav);          // 값을 만들어 args에 넣음 (같은 위치)
+        }
+        return args;
+    }</code></pre>
+
+<pre><code>// 대표적인 Resolver들 (줄인 모양)
+
+// @RequestParam String name  담당
+class RequestParamResolver implements ArgumentResolver {
+    public boolean supports(Parameter p) { return p.isAnnotationPresent(RequestParam.class); }
+
+    public Object resolve(Parameter p, ServletWebRequest web, ModelAndViewContainer mav) {
+        String value = web.getRequest().getParameter(p.getName());     // 톰캣이 만든 요청 객체에서 꺼냄
+        if (value == null) {
+            if (hasDefaultValue(p)) return defaultValue(p);
+            throw new MissingServletRequestParameterException(p.getName());   // → 400
+        }
+        return convert(value, p.getType());                             // 문자열 → long, int 등
+    }
+}
+
+// Model model  담당
+class ModelResolver implements ArgumentResolver {
+    public boolean supports(Parameter p) { return Model.class.isAssignableFrom(p.getType()); }
+
+    public Object resolve(Parameter p, ServletWebRequest web, ModelAndViewContainer mav) {
+        return mav.model;                  // 보관함의 Model을 그대로 꺼내 줌 (그래서 mav가 필요)
+    }
+}
+
+// @RequestBody TodoRequest req  담당
+class RequestBodyResolver implements ArgumentResolver {
+    public boolean supports(Parameter p) { return p.isAnnotationPresent(RequestBody.class); }
+
+    public Object resolve(Parameter p, ServletWebRequest web, ModelAndViewContainer mav) throws Exception {
+        InputStream body = web.getRequest().getInputStream();           // 요청 본문 바이트
+        return jacksonConverter.read(p.getType(), body);                // JSON → 객체
+    }
+}</code></pre>
+
+  <h3>4-3. ③ 반환값 처리: 처리기에게 맡기기</h3>
+<pre><code>    private void handleReturnValue(Object value, Method method, ModelAndViewContainer mav, ServletWebRequest web) throws Exception {
+        for (ReturnValueHandler h : returnValueHandlers) {
+            if (h.supports(method)) {                // 메서드 선언(애너테이션, 반환 타입)을 보고 판단
+                h.handleReturnValue(value, method, mav, web);
+                return;
+            }
+        }
+        throw new IllegalStateException("반환값을 처리할 수 없습니다");
+    }
+}</code></pre>
+
+  <h3>4-4. 데이터 응답과 화면 응답: 처리기가 갈라지는 지점</h3>
+<pre><code>// (A) 데이터 응답 — @ResponseBody / @RestController 담당
+class ResponseBodyHandler implements ReturnValueHandler {
+    public boolean supports(Method m) {
+        return m.isAnnotationPresent(ResponseBody.class)
+            || m.getDeclaringClass().isAnnotationPresent(ResponseBody.class);   // @RestController 포함
+    }
+
+    public void handleReturnValue(Object value, Method m, ModelAndViewContainer mav, ServletWebRequest web) throws Exception {
+        mav.requestHandled = true;                                   // "응답은 내가 끝낸다"는 표시 → Adapter가 null 반환
+
+        HttpServletResponse resp = web.getResponse();                // 매개변수로 내려온 톰캣의 Response
+        for (HttpMessageConverter c : converters) {
+            if (c.canWrite(value.getClass(), "application/json")) {
+                c.write(value, "application/json", resp);            // 객체 → JSON 바이트를 Response 출력 스트림에 씀
+                return;
+            }
+        }
+        throw new HttpMediaTypeNotAcceptableException();             // → 406
+    }
+}
+
+// (B) 화면 응답 — @Controller + 문자열 반환 담당
+class ViewNameHandler implements ReturnValueHandler {
+    public boolean supports(Method m) { return m.getReturnType() == String.class; }
+
+    public void handleReturnValue(Object value, Method m, ModelAndViewContainer mav, ServletWebRequest web) {
+        mav.viewName = (String) value;       // "hello"를 뷰 이름으로 저장만 함 (Response에는 쓰지 않음)
+        // requestHandled는 false 그대로 → Adapter가 ModelAndView를 만들어 돌려줌
+    }
+}
+
+// 컨버터 (줄인 모양)
+class JacksonConverter implements HttpMessageConverter {
+    public boolean canWrite(Class&lt;?&gt; type, String mediaType) { return mediaType.contains("json"); }
+
+    public void write(Object value, String mediaType, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        objectMapper.writeValue(resp.getOutputStream(), value);      // JSON을 출력 스트림에 기록
+    }
+}</code></pre>
+  <div class="note">
+    <b>갈라지는 지점 정리</b>
+    <table>
+      <tr><th></th><th>데이터 응답</th><th>화면 응답</th></tr>
+      <tr><td>처리기</td><td>ResponseBodyHandler</td><td>ViewNameHandler</td></tr>
+      <tr><td>Response에 쓰나</td><td>예, 처리기가 직접</td><td>아니요, 아직 안 씀</td></tr>
+      <tr><td>보관함 requestHandled</td><td>true</td><td>false</td></tr>
+      <tr><td>Adapter 반환</td><td>null</td><td>ModelAndView</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="vr">
+  <h2>5. ViewResolver</h2>
+  <p class="lead"><span class="tag t-amber">부품</span>뷰 이름을 받아 어떤 템플릿 파일을 쓸지 정하고, 그 정보를 가진 View 객체를 만들어 줍니다. 화면 응답에서만 호출됩니다.</p>
+<pre><code>public class TemplateViewResolver implements ViewResolver {
+
+    private final String prefix = "templates/";      // 앞에 붙일 폴더
+    private final String suffix = ".html";           // 뒤에 붙일 확장자
+
+    @Override
+    public View resolveViewName(String viewName) {
+        String path = prefix + viewName + suffix;    // "hello" → "templates/hello.html"
+        return new TemplateView(path);               // 파일을 읽는 일은 View.render 때 함
+    }
+}</code></pre>
+  <div class="note"><b>핵심</b> ViewResolver는 <b>파일 위치를 조립해서 View를 만드는 일</b>만 합니다. HTML을 만드는 것은 다음 단계의 View입니다. 스프링 부트에서 Thymeleaf를 쓰면 이 자리에 <code>ThymeleafViewResolver</code>가 들어옵니다.</div>
+</section>
+
+<section id="view">
+  <h2>6. View</h2>
+  <p class="lead"><span class="tag t-coral">마무리</span>템플릿 파일을 읽어 Model의 값으로 빈칸을 채우고, 완성된 HTML을 Response에 씁니다.</p>
+<pre><code>public class TemplateView implements View {
+
+    private final String templatePath;               // "templates/hello.html"
+
+    public TemplateView(String templatePath) { this.templatePath = templatePath; }
+
+    @Override
+    public void render(Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse resp) throws Exception {
+
+        // ① 템플릿 파일 읽기
+        String html = readFromClasspath(templatePath);
+        //   예: &lt;p&gt;안녕하세요. ${data}&lt;/p&gt;
+
+        // ② 빈칸 채우기: Model의 이름과 값으로 ${이름} 자리를 바꿈
+        for (Map.Entry&lt;String, Object&gt; e : model.entrySet()) {
+            html = html.replace("${" + e.getKey() + "}", String.valueOf(e.getValue()));
+        }
+        //   model = { data: "hello!!" }  →  &lt;p&gt;안녕하세요. hello!!&lt;/p&gt;
+
+        // ③ Response에 기록
+        resp.setContentType("text/html;charset=UTF-8");
+        resp.getWriter().write(html);
+    }
+}</code></pre>
+  <div class="warn"><b>실제와 다른 점</b> 이 코드는 빈칸 채우기의 원리만 보여 주는 장난감입니다. 실제 Thymeleaf는 <code>th:text</code>, <code>th:each</code> 같은 문법을 해석하고, <b>HTML 특수문자를 자동으로 이스케이프해서 XSS 공격을 막는 기능</b>까지 있습니다. 위처럼 단순 치환하면 사용자 입력에 스크립트가 섞였을 때 위험합니다.</div>
+  <p class="lead" style="margin-top:10px"><code>render</code>가 끝나면 <code>doDispatch</code>가 종료되고, 톰캣이 Response를 HTTP 글자로 바꿔 소켓으로 보냅니다.</p>
+</section>
+
+<section id="trace">
+  <h2>7. 순서대로 확인: GET /hello 의 흐름</h2>
+  <p class="lead">위 코드에 출력문을 넣는다고 가정했을 때 찍힐 순서입니다.</p>
+<pre><code>[톰캣]              Request/Response 생성, "/" → DispatcherServlet 선택
+[DispatcherServlet] service() → doDispatch() 시작
+[DispatcherServlet] getHandler: HandlerMapping에게 질문
+[HandlerMapping]    registry에서 "GET /hello" 발견 → HandlerMethod(HelloController, hello)
+[DispatcherServlet] getHandlerAdapter: supports(HandlerMethod) → RequestMappingHandlerAdapter 선택
+[HandlerAdapter]    보관함 생성 { model: {}, viewName: null, requestHandled: false }
+[HandlerAdapter]    매개변수 1 (Model) → ModelResolver → 보관함의 model 전달
+[HandlerAdapter]    method.invoke(helloController, [model])
+[HelloController]   model.addAttribute("data", "hello!!") → return "hello"
+[HandlerAdapter]    반환값 처리: ViewNameHandler → 보관함.viewName = "hello"
+[HandlerAdapter]    requestHandled = false → ModelAndView("hello", {data: hello!!}) 반환
+[DispatcherServlet] processDispatchResult: mv != null → render
+[ViewResolver]      "hello" → TemplateView("templates/hello.html")
+[View]              파일 읽기 → ${data} 를 "hello!!" 로 치환 → Response에 HTML 기록
+[DispatcherServlet] doDispatch 종료
+[톰캣]              Response를 HTTP 응답 글자로 변환해 소켓으로 전송</code></pre>
+
+  <h3>같은 흐름이 @RestController 라면</h3>
+<pre><code>...(앞부분 동일)...
+[HandlerAdapter]    method.invoke(...) → 반환값 Greeting 객체
+[HandlerAdapter]    반환값 처리: ResponseBodyHandler → JacksonConverter가 JSON을 Response에 기록
+[HandlerAdapter]    requestHandled = true → null 반환
+[DispatcherServlet] processDispatchResult: mv == null → 할 일 없음 (ViewResolver, View 단계 건너뜀)
+[톰캣]              Response를 HTTP 응답 글자로 변환해 소켓으로 전송</code></pre>
+</section>
+
+<section id="real">
+  <h2>8. 실제 스프링 클래스와 대응</h2>
+  <p class="lead">아래 이름을 IntelliJ에서 찾아(맥: <code>Cmd+O</code>) 중단점을 걸어 보면 위 흐름을 눈으로 확인할 수 있습니다. 버전에 따라 이름과 위치가 조금 다를 수 있습니다.</p>
+  <div class="scroll">
+  <table>
+    <tr><th>이 문서의 코드</th><th>실제 스프링의 이름</th><th>중단점 후보</th></tr>
+    <tr><td>DispatcherServlet.doDispatch</td><td><code>DispatcherServlet</code></td><td><code>doDispatch</code></td></tr>
+    <tr><td>getHandler, getHandlerAdapter</td><td><code>DispatcherServlet</code></td><td><code>getHandler</code>, <code>getHandlerAdapter</code></td></tr>
+    <tr><td>RequestMappingHandlerMapping</td><td><code>RequestMappingHandlerMapping</code> (<code>AbstractHandlerMethodMapping</code> 상속)</td><td><code>lookupHandlerMethod</code></td></tr>
+    <tr><td>HandlerAdapter.handle</td><td><code>RequestMappingHandlerAdapter</code></td><td><code>handleInternal</code>, <code>invokeHandlerMethod</code></td></tr>
+    <tr><td>메서드 호출과 반환값 처리</td><td><code>ServletInvocableHandlerMethod</code>, <code>InvocableHandlerMethod</code></td><td><code>invokeAndHandle</code>, <code>doInvoke</code></td></tr>
+    <tr><td>ArgumentResolver</td><td><code>HandlerMethodArgumentResolver</code> 구현체들 (<code>RequestParamMethodArgumentResolver</code>, <code>ModelMethodProcessor</code> 등)</td><td><code>resolveArgument</code></td></tr>
+    <tr><td>ReturnValueHandler</td><td><code>HandlerMethodReturnValueHandler</code> 구현체들 (<code>RequestResponseBodyMethodProcessor</code>, <code>ViewNameMethodReturnValueHandler</code>)</td><td><code>handleReturnValue</code></td></tr>
+    <tr><td>컨버터</td><td><code>HttpMessageConverter</code> 구현체 (<code>MappingJackson2HttpMessageConverter</code>)</td><td><code>write</code></td></tr>
+    <tr><td>TemplateViewResolver, TemplateView</td><td><code>ThymeleafViewResolver</code>, <code>ThymeleafView</code></td><td><code>render</code></td></tr>
+    <tr><td>processDispatchResult, render</td><td><code>DispatcherServlet</code></td><td><code>processDispatchResult</code>, <code>render</code></td></tr>
+  </table>
+  </div>
+  <div class="note"><b>디버깅 방법</b> ① 앱을 <b>Debug</b> 모드로 실행 ② 위 중단점 후보에 브레이크포인트 설정 ③ <code>curl</code>로 요청을 보내면 해당 지점에서 멈춤 ④ <b>Step Over / Step Into</b>로 한 줄씩 따라가며 변수(<code>handlerMappings</code>, <code>args</code> 등)를 확인합니다.</div>
+</section>
+
+<footer>
+  <p>이 문서의 코드는 이해를 돕기 위한 단순화이며 실제 스프링 소스가 아닙니다. 정확한 구현은 해당 버전의 소스와 공식 문서를 확인하세요.</p>
+</footer>
+
+</div>
+</body>
+</html>

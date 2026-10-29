@@ -12,6 +12,7 @@ SYNC=(
   "$VAULT/Java/05_Git|05_Git"
   "$VAULT/Java/06_CS|06_CS"
   "$VAULT/Java/네트워크|네트워크"
+  "$VAULT/Java/07_백엔드|07_백엔드"
   "$VAULT/Java/9999_첨부파일|9999_첨부파일"
   "$VAULT/회고/01_회고|회고"
 )
@@ -35,7 +36,7 @@ python3 - "$DEST" <<'PY'
 import datetime, os, re, sys
 
 dest = sys.argv[1]
-TITLED_DIRS = ["01_Java", "03_디자인 패턴", "05_Git", "06_CS", "네트워크"]
+TITLED_DIRS = ["01_Java", "03_디자인 패턴", "05_Git", "06_CS", "네트워크", "07_백엔드"]
 # 공개 사이트에 그대로 남으면 안 되는 문자열을 복사본에서만 바꾼다. (원본은 그대로)
 PRIVATE = {"taeyoung": "user"}
 DATED_ONLY_DIRS = ["회고"]
@@ -47,6 +48,8 @@ FOLDER_TITLES = {
     "네트워크": "네트워크",
     "네트워크/http 강의": "HTTP 강의",
     "네트워크/HTTP_학습자료(ai자료)": "HTTP 학습자료(ai자료)",
+    "07_백엔드": "백엔드",
+    "07_백엔드/스프링": "스프링",
     "03_디자인 패턴/01_GoF_생성": "GoF 생성",
     "03_디자인 패턴/02_GoF_구조": "GoF 구조",
     "03_디자인 패턴/03_GoF 행동": "GoF 행동",
@@ -109,6 +112,55 @@ for rel, title in FOLDER_TITLES.items():
 PY
 echo "제목 정리 완료"
 
+# 노트에 딸린 HTML 자료는 Quartz가 확장자를 떼어 버리므로, 사진처럼 정적 파일 폴더로 옮기고
+# 노트(복사본)의 링크를 그쪽으로 바꾼다. (옵시디언 원본은 그대로)
+python3 - "$DEST" "$(cd "$(dirname "$0")" && pwd)" <<'PY'
+import os, re, shutil, sys, urllib.parse
+
+dest, site = sys.argv[1], sys.argv[2]
+target = os.path.join(site, "quartz", "static", "materials")
+shutil.rmtree(target, ignore_errors=True)
+
+# Quartz는 상대 경로 링크의 .html을 다시 떼어 버리므로, 사이트 전체 주소로 연결한다.
+with open(os.path.join(site, "quartz.config.yaml"), encoding="utf-8") as f:
+    base_url = re.search(r"^\s*baseUrl:\s*(\S+)", f.read(), re.M).group(1).strip().rstrip("/")
+prefix = "https://" + base_url + "/static/materials/"
+
+moved = set()
+for root, _, files in os.walk(dest):
+    for name in files:
+        if name.lower().endswith(".html"):
+            os.makedirs(target, exist_ok=True)
+            shutil.move(os.path.join(root, name), os.path.join(target, name))
+            moved.add(name)
+
+if moved:
+    link = re.compile(r"\]\(([^)]*?)([^/)]+\.html)\)")
+    for root, _, files in os.walk(dest):
+        rel = os.path.relpath(root, dest)
+        depth = 0 if rel == "." else len(rel.split(os.sep))
+        for name in files:
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(root, name)
+            st = os.stat(path)
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+
+            def fix(m):
+                base = m.group(2)
+                if base not in moved:
+                    return m.group(0)
+                return "](" + prefix + urllib.parse.quote(base) + ")"
+
+            new = link.sub(fix, text)
+            if new != text:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(new)
+                os.utime(path, (st.st_atime, st.st_mtime))
+    print("HTML 자료 이동:", ", ".join(sorted(moved)))
+PY
+
 # 홈 화면(content/index.md)은 이 스크립트가 노트 내용으로 매번 새로 만든다.
 # (통계, 카테고리별 노트 수, 최근 업데이트, 가장 최근 회고, 태그 모음)
 python3 - "$DEST" <<'PY'
@@ -122,6 +174,7 @@ CATS = [  # (tone, 폴더, 이름, 설명)
     ("3", "05_Git", "깃", "기본 개념과 사용법, 커밋 메시지"),
     ("5", "06_CS", "CS", "터미널 같은 컴퓨터 기본기"),
     ("6", "네트워크", "네트워크", "HTTP와 네트워크 연결 구조"),
+    ("7", "07_백엔드", "백엔드", "스프링 구조, 요청 흐름, DB 접근"),
     # 회고는 항상 맨 끝에 둔다. 새 카테고리는 이 줄 위에 추가한다.
     ("4", "회고", "회고", "하루하루 공부한 내용과 헷갈렸던 점"),
 ]
