@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>스프링 MVC 호출 흐름 (변수 색상 보기)</title>
+<title>스프링 MVC 호출 흐름 (변수 색상 보기) (AI 생성)</title>
 <style>
 :root{
   --bg:#f7f6f2; --card:#ffffff; --text:#1f1f1d; --muted:#6b6a64; --line:#e3e1d8;
@@ -46,6 +46,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"
 header{padding:40px 0 14px}
 h1{font-size:27px;margin:0 0 6px;font-weight:600}
 .sub{color:var(--muted);margin:0;font-size:15px}
+.aibadge{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;padding:2px 11px;border-radius:99px;background:var(--handler-bg);color:var(--handler)}
 nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
 nav a{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:3px 10px;border-radius:99px;background:var(--card)}
 nav a:hover{color:var(--accent);border-color:var(--accent)}
@@ -131,6 +132,7 @@ footer{margin-top:48px;color:var(--muted);font-size:13px}
 <header>
   <h1>스프링 MVC 호출 흐름 (변수 색상 보기)</h1>
   <p class="sub">호출 문장에서 <b>같은 값은 같은 색</b>으로 칠해서, 값이 어디서 만들어져 어디로 흘러가는지 눈으로 따라가는 복습용 문서</p>
+  <div class="aibadge">AI 생성 자료</div>
 </header>
 
 <nav>
@@ -476,7 +478,7 @@ return mav.isRequestHandled() ? null : new ModelAndView(mav.getViewName(), mav.g
 </section>
 
 <footer>
-  <p>코드는 이해를 돕기 위해 줄이고 이름을 단순화한 것이며 실제 스프링 소스가 아닙니다. 실제로는 <code>web</code>이 <code>ServletWebRequest</code>, <code>mav</code>가 <code>ModelAndViewContainer</code>이고, 반환 타입과 메서드 이름이 조금 다릅니다. 정확한 동작은 <code>DispatcherServlet.doDispatch</code>에 중단점을 걸고 확인하세요.</p>
+  <p>이 자료는 AI가 생성했습니다. 코드는 이해를 돕기 위해 줄이고 이름을 단순화한 것이며 실제 스프링 소스가 아닙니다. 실제로는 <code>web</code>이 <code>ServletWebRequest</code>, <code>mav</code>가 <code>ModelAndViewContainer</code>이고, 반환 타입과 메서드 이름이 조금 다릅니다. 정확한 동작은 <code>DispatcherServlet.doDispatch</code>에 중단점을 걸고 확인하세요.</p>
 </footer>
 
 </div>

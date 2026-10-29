@@ -87,6 +87,6 @@ chain.triggerAfterCompletion(req, resp, ex);      // 7. 예외가 나도 실행
 
 ---
 ## 같이 보는 자료
-공부할 때 쓴 html 2개. 파일을 눌러서 브라우저로 열면 됨
-- [코드 따라가기](https://yunty.github.io/static/materials/%EC%8A%A4%ED%94%84%EB%A7%81MVC-%EC%BD%94%EB%93%9C%EB%94%B0%EB%9D%BC%EA%B0%80%EA%B8%B0.html) : 톰캣부터 View까지 **각 클래스 안에서 뭘 하는지** 줄인 코드로 순서대로 봄
-- [호출 흐름 (변수 색상 보기)](https://yunty.github.io/static/materials/%EC%8A%A4%ED%94%84%EB%A7%81MVC-%ED%98%B8%EC%B6%9C%ED%9D%90%EB%A6%84-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8A%B8.html) : 호출 문장에서 **같은 값은 같은 색**으로 칠해서, 값이 어디서 만들어져 어디로 넘어가는지 따라감
+공부할 때 쓴 html 2개 (**AI 생성 자료**). 파일을 눌러서 브라우저로 열면 됨
+- [코드 따라가기 (AI 생성)](https://yunty.github.io/static/materials/%EC%8A%A4%ED%94%84%EB%A7%81MVC-%EC%BD%94%EB%93%9C%EB%94%B0%EB%9D%BC%EA%B0%80%EA%B8%B0.html) : 톰캣부터 View까지 **각 클래스 안에서 뭘 하는지** 줄인 코드로 순서대로 봄
+- [호출 흐름, 변수 색상 보기 (AI 생성)](https://yunty.github.io/static/materials/%EC%8A%A4%ED%94%84%EB%A7%81MVC-%ED%98%B8%EC%B6%9C%ED%9D%90%EB%A6%84-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8A%B8.html) : 호출 문장에서 **같은 값은 같은 색**으로 칠해서, 값이 어디서 만들어져 어디로 넘어가는지 따라감
