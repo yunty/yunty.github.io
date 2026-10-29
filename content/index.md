@@ -6,7 +6,7 @@ title: 동태의 공부방
 <div class="hero-body">
 <span class="hero-badge">TREE STUDY</span>
 <div class="hero-title">동태의 공부방</div>
-<p class="hero-sub">AI와 백엔드를 깊게 탐구하는 사이보그 개발자(희망)</p>
+<p class="hero-sub">백엔드를 깊게 탐구하는 사이보그 개발자(희망)</p>
 </div>
 </section>
 
