@@ -5,24 +5,29 @@
 VAULT="${NOTES_VAULT:-$HOME/Documents/Study/Obsidian}"
 DEST="$(cd "$(dirname "$0")" && pwd)/content"
 
+# 형식: "원본경로|content 안의 경로|제외할 하위 폴더(선택)"
 SYNC=(
   "$VAULT/Java/01_Java|01_Java"
   "$VAULT/Java/03_디자인 패턴|03_디자인 패턴"
   "$VAULT/Java/05_Git|05_Git"
+  "$VAULT/Java/06_CS|06_CS"
+  "$VAULT/Java/네트워크|네트워크"
   "$VAULT/Java/9999_첨부파일|9999_첨부파일"
   "$VAULT/회고/01_회고|회고"
 )
 
 for entry in "${SYNC[@]}"; do
-  src="${entry%%|*}"
-  dst="$DEST/${entry##*|}"
+  IFS='|' read -r src rel exclude <<< "$entry"
+  dst="$DEST/$rel"
   if [ ! -d "$src" ]; then
     echo "건너뜀 (원본 없음): $src"
     continue
   fi
   mkdir -p "$dst"
-  rsync -a --delete --exclude ".obsidian" --exclude ".DS_Store" "$src/" "$dst/"
-  echo "복사: ${entry##*|}"
+  args=(--exclude ".obsidian" --exclude ".DS_Store")
+  [ -n "$exclude" ] && args+=(--exclude "$exclude")
+  rsync -a --delete "${args[@]}" "$src/" "$dst/"
+  echo "복사: $rel${exclude:+ (제외: $exclude)}"
 done
 
 # 사이트에서는 번호 접두사(01_, 03_ ...)가 보이지 않도록, 복사본에만 제목을 넣어 준다. (원본은 그대로)
@@ -30,12 +35,18 @@ python3 - "$DEST" <<'PY'
 import datetime, os, re, sys
 
 dest = sys.argv[1]
-TITLED_DIRS = ["01_Java", "03_디자인 패턴", "05_Git"]
+TITLED_DIRS = ["01_Java", "03_디자인 패턴", "05_Git", "06_CS", "네트워크"]
+# 공개 사이트에 그대로 남으면 안 되는 문자열을 복사본에서만 바꾼다. (원본은 그대로)
+PRIVATE = {"taeyoung": "user"}
 DATED_ONLY_DIRS = ["회고"]
 FOLDER_TITLES = {
     "01_Java": "자바",
     "03_디자인 패턴": "디자인 패턴",
     "05_Git": "깃",
+    "06_CS": "CS",
+    "네트워크": "네트워크",
+    "네트워크/http 강의": "HTTP 강의",
+    "네트워크/HTTP_학습자료(ai자료)": "HTTP 학습자료(ai자료)",
     "03_디자인 패턴/01_GoF_생성": "GoF 생성",
     "03_디자인 패턴/02_GoF_구조": "GoF 구조",
     "03_디자인 패턴/03_GoF 행동": "GoF 행동",
@@ -68,12 +79,26 @@ def prepare(path, title):
         f.write("---\n" + new_head + "\n---" + joiner + body)
     os.utime(path, (st.st_atime, st.st_mtime))
 
+def sanitize(path):
+    st = os.stat(path)
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    new = text
+    for old, repl in PRIVATE.items():
+        new = new.replace(old, repl)
+    if new != text:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(new)
+        os.utime(path, (st.st_atime, st.st_mtime))
+
 for d in TITLED_DIRS + DATED_ONLY_DIRS:
     for root, _, files in os.walk(os.path.join(dest, d)):
         for name in files:
             if name.endswith(".md") and name != "index.md":
+                path = os.path.join(root, name)
+                sanitize(path)
                 title = clean(name[:-3]) if d in TITLED_DIRS else None
-                prepare(os.path.join(root, name), title)
+                prepare(path, title)
 
 for rel, title in FOLDER_TITLES.items():
     folder = os.path.join(dest, rel)
@@ -95,6 +120,9 @@ CATS = [  # (tone, 폴더, 이름, 설명)
     ("1", "01_Java", "자바", "자바 기본과 동시성"),
     ("2", "03_디자인 패턴", "디자인 패턴", "GoF 생성, 구조, 행동 패턴"),
     ("3", "05_Git", "깃", "기본 개념과 사용법, 커밋 메시지"),
+    ("5", "06_CS", "CS", "터미널 같은 컴퓨터 기본기"),
+    ("6", "네트워크", "네트워크", "HTTP와 네트워크 연결 구조"),
+    # 회고는 항상 맨 끝에 둔다. 새 카테고리는 이 줄 위에 추가한다.
     ("4", "회고", "회고", "하루하루 공부한 내용과 헷갈렸던 점"),
 ]
 DAILY = re.compile(r"^(\d+)\.(\d+)$")

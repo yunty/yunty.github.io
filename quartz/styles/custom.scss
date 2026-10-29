@@ -732,6 +732,16 @@ body[data-slug="index"] {
   color: #c2456e;
 }
 
+.cat-card[data-tone="5"] .cat-no {
+  background: rgba(139, 92, 246, 0.15);
+  color: #6d4bd8;
+}
+
+.cat-card[data-tone="6"] .cat-no {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0b7bb0;
+}
+
 html[saved-theme="dark"] {
   & .cat-card[data-tone="2"] .cat-no {
     color: var(--tertiary);
@@ -743,6 +753,14 @@ html[saved-theme="dark"] {
 
   & .cat-card[data-tone="4"] .cat-no {
     color: #f08aa9;
+  }
+
+  & .cat-card[data-tone="5"] .cat-no {
+    color: #b9a4ff;
+  }
+
+  & .cat-card[data-tone="6"] .cat-no {
+    color: #7fd0f5;
   }
 }
 
