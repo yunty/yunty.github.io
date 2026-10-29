@@ -277,11 +277,11 @@ def mmdd(ts):
 
 
 out = []
-out.append("---\ntitle: 동태의 공부방\n---\n")
+out.append("---\ntitle: 동태의 옵시디언 모음집\n---\n")
 out.append(
     '<section class="hero">\n<div class="hero-body">\n'
     '<span class="hero-badge">TREE STUDY</span>\n'
-    '<div class="hero-title">동태의 공부방</div>\n'
+    '<div class="hero-title">동태의 옵시디언 모음집</div>\n'
     '<p class="hero-sub">백엔드를 깊게 탐구하는 사이보그 개발자(희망)</p>\n'
     "</div>\n</section>\n"
 )
