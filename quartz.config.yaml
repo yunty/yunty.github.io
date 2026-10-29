@@ -12,7 +12,7 @@ configuration:
     - templates
     - .obsidian
   theme:
-    fontOrigin: googleFonts
+    fontOrigin: local
     cdnCaching: true
     typography:
       header: Noto Sans KR
@@ -109,6 +109,25 @@ plugins:
     order: 92
   - source: "@quartz-community/quartz-fonts"
     enabled: true
+    options:
+      fontOrigin: googleFonts
+      useThemeFonts: false
+      header:
+        name: Noto Sans KR
+        weights: [400, 700, 800]
+        includeItalic: false
+      body:
+        name: Noto Sans KR
+        weights: [400, 700]
+        includeItalic: false
+      interface:
+        name: Noto Sans KR
+        weights: [400, 700]
+        includeItalic: false
+      code:
+        name: JetBrains Mono
+        weights: [400, 700]
+        includeItalic: false
   - source: "@quartz-themes/core"
     enabled: false
     options:

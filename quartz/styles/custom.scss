@@ -128,6 +128,60 @@ figure[data-rehype-pretty-code-figure] {
   }
 }
 
+// 코드 블록: 줄 간격은 촘촘하게, 글자 간격은 그대로 둔다
+// (본문의 줄 간격과 자간 보정이 코드에 번지지 않게)
+pre,
+pre code {
+  letter-spacing: 0;
+}
+
+pre code {
+  line-height: 1.65;
+}
+
+// 글(text) 블록은 도표나 메시지 예시라서 줄 번호 없이 본문 글꼴로 보여 준다.
+// 줄이 하나뿐인 블록에도 줄 번호는 숨긴다.
+code[data-language="text"] [data-line]::before,
+code > [data-line]:only-child::before {
+  display: none;
+}
+
+pre[data-language="text"] {
+  padding: 0.4rem 0;
+
+  & code {
+    font-family: var(--bodyFont);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+}
+
+// 표: 카드 폭을 꽉 채우고, 머리 줄은 옅은 색 바탕으로
+.table-container {
+  & > table {
+    width: 100%;
+  }
+
+  & th {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--lightgray);
+    background: var(--highlight);
+    font-weight: 700;
+  }
+
+  & td {
+    padding: 0.6rem 1rem;
+  }
+
+  & tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--highlight);
+    }
+  }
+}
+
 // 인용문: 왼쪽 선 대신 둥근 상자
 blockquote {
   border: 1px solid var(--lightgray);
@@ -156,15 +210,33 @@ iframe.pdf {
   border-radius: $radius-lg;
 }
 
+// 표 카드: 모서리는 둥글게 자르되, 좁은 화면에서는 가로로 스크롤되게 한다
 .table-container {
   border: 1px solid var(--lightgray);
   border-radius: $radius-lg;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 
   & > table {
     margin: 0;
+    padding: 0;
     border-collapse: collapse;
   }
+}
+
+// 이미지: 가운데 정렬, 화면 폭을 넘지 않게, 테두리와 그림자로 글과 구분
+.center article img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.4rem auto;
+  border: 1px solid var(--lightgray);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+// 다크 모드에서는 흰 배경 그림이 너무 눈부시지 않게 살짝 어둡게
+html[saved-theme="dark"] .center article img {
+  filter: brightness(0.9) contrast(1.02);
 }
 
 // 사이드바: 위쪽은 프로필, 아래쪽은 카드 모양 탐색기
