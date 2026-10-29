@@ -344,6 +344,12 @@ $not-mobile: "(min-width: 801px)";
   max-width: 100%;
 }
 
+// 내용이 짧은 목록 화면이 칸 가운데로 쪼그라들지 않고 칸 전체를 쓰게 한다
+.center {
+  width: 100%;
+  justify-self: stretch;
+}
+
 @media #{$tablet} {
   .page > #quartz-body {
     padding-right: 1.8rem;
@@ -447,21 +453,78 @@ $not-mobile: "(min-width: 801px)";
 }
 
 // 폴더/태그 목록 화면: 날짜 | 제목 두 칸으로 두고, 태그는 제목 아래에 한 줄 흐름으로 둔다
+// 각 항목은 카드 한 줄로: 날짜는 줄바꿈 없이 왼쪽, 제목은 오른쪽
+.section-ul {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+}
+
+.section-li {
+  margin-bottom: 0;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid var(--lightgray);
+  border-radius: $radius-md;
+  background: var(--light);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    transform: translateX(3px);
+    border-color: var(--secondary);
+  }
+}
+
 .section-li > .section {
-  grid-template-columns: 8rem minmax(0, 1fr);
+  grid-template-columns: 10.5rem minmax(0, 1fr);
   align-items: baseline;
   row-gap: 0.3rem;
 
   & > .meta {
     grid-column: 1;
+    margin: 0;
+    font-size: 0.85rem;
+    white-space: nowrap;
   }
 
   & > .desc {
     grid-column: 2;
+
+    & > h3 {
+      margin: 0;
+      font-size: 1.05rem;
+
+      &::before {
+        display: none;
+      }
+    }
   }
 
   & > ul.tags {
     grid-column: 2;
+  }
+}
+
+// 푸터: 본문 칸에 맞추고 옅게
+footer {
+  margin-top: 3rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--lightgray);
+  color: var(--gray);
+  font-size: 0.85rem;
+
+  & p {
+    margin: 0 0 0.4rem;
+  }
+
+  & ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 }
 
