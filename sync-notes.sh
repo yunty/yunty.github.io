@@ -42,6 +42,11 @@ PRIVATE = {"taeyoung": "user"}
 DATED_ONLY_DIRS = ["회고"]
 FOLDER_TITLES = {
     "01_Java": "자바",
+    "01_Java/01_JVM과 클래스": "JVM과 클래스",
+    "01_Java/02_리플렉션과 어노테이션": "리플렉션과 어노테이션",
+    "01_Java/03_동시성": "동시성",
+    "01_Java/04_최신 문법": "최신 문법",
+    "01_Java/05_기타": "기타",
     "03_디자인 패턴": "디자인 패턴",
     "05_Git": "깃",
     "06_CS": "CS",
@@ -237,7 +242,10 @@ for tone, folder, cat_title, _ in CATS:
             head, body = frontmatter(read(path))
             stem = name[:-3]
             title = fm_value(head, "title") or stem
-            display = title + " 회고" if folder == "회고" else title
+            if folder == "회고":
+                display = stem + " 일일 회고" if DAILY.match(stem) else stem
+            else:
+                display = title
             notes.append({
                 "rel": rel, "display": display, "cat": cat_title, "folder": folder,
                 "mtime": os.path.getmtime(path),
@@ -262,7 +270,7 @@ for tone, folder, cat_title, _ in CATS:
                         todos.append(mt.group(1).strip())
                 daily.append({
                     "key": (int(m.group(1)), int(m.group(2))), "stem": stem, "rel": rel,
-                    "hours": fm_value(head, "공부시간"), "topics": topics, "todos": todos,
+                    "date": fm_value(head, "date"), "hours": fm_value(head, "공부시간"), "topics": topics, "todos": todos,
                 })
 
 total = len(notes)
@@ -276,62 +284,70 @@ def mmdd(ts):
     return f"{d.month}.{d.day}"
 
 
+# 홈 카테고리 카드: 폴더 -> (색, 설명). 새 카테고리는 CATS와 여기에 같이 추가한다.
+CARD = {
+    "01_Java": ("#ff7a59", "JVM, 리플렉션, 동시성, 최신 문법"),
+    "03_디자인 패턴": ("#ff6fa5", "GoF 생성 · 구조 · 행동"),
+    "05_Git": ("#f5b800", "기본 개념과 사용법, 커밋 메시지"),
+    "06_CS": ("#705dcf", "터미널, 컴퓨터가 코드를 실행하는 길"),
+    "네트워크": ("#3b8fe8", "HTTP와 네트워크 연결 구조"),
+    "07_백엔드": ("#1fb58f", "스프링 구조, 요청 흐름, DB 접근"),
+    "회고": ("#8a7fb0", "일일 · 주간 공부 기록"),
+}
+COLOR = {n["folder"]: CARD[n["folder"]][0] for n in notes}
+
+
+def href(rel):
+    return re.sub(r"\s+", "-", rel)  # Quartz 주소 규칙: 공백은 -
+
+
+cards = []
+for _, folder, cat_title, _ in CATS:
+    color, desc = CARD[folder]
+    cards.append(
+        f'<a class="hc" style="--fg:{color}" href="{esc(href(folder))}/">'
+        f"<i>{counts[folder]}</i><b>{esc(cat_title)}</b><span>{esc(desc)}</span></a>"
+    )
+
+# 최근에 쓴 글 5개: 공부 노트 기준(회고는 아래 이번 주 목록에 나온다)
+study = sorted((n for n in notes if n["folder"] != "회고"), key=lambda n: -n["mtime"])
+recent_rows = "".join(
+    f'<a class="hr" style="--fg:{COLOR[n["folder"]]}" href="{esc(href(n["rel"]))}">'
+    f'<span>{esc(n["display"])}</span><em>{esc(n["cat"])}</em></a>'
+    for n in study[:5]
+)
+
+# 이번 주: 가장 최근 일일 노트가 속한 주(월요일 시작)부터 수정된 노트 전부
+dates = []
+for d in daily:
+    try:
+        dates.append(datetime.date.fromisoformat(d["date"]))
+    except (TypeError, ValueError):
+        pass
+ref = max(dates) if dates else latest_dt.date()
+week_start = ref - datetime.timedelta(days=ref.weekday())
+week_end = week_start + datetime.timedelta(days=6)
+week = sorted(
+    (n for n in notes if datetime.datetime.fromtimestamp(n["mtime"]).date() >= week_start),
+    key=lambda n: (n["folder"] == "회고", -n["mtime"]),
+)
+week_chips = "".join(
+    f'<a class="hw" style="--fg:{COLOR[n["folder"]]}" href="{esc(href(n["rel"]))}">{esc(n["display"])}</a>'
+    for n in week
+)
+week_label = f"{week_start.month}.{week_start.day} ~ {week_end.month}.{week_end.day}"
+
 out = []
 out.append("---\ntitle: 동태의 옵시디언 모음집\n---\n")
 out.append(
-    '<section class="hero">\n<div class="hero-body">\n'
-    '<span class="hero-badge">TREE STUDY</span>\n'
-    '<div class="hero-title">동태의 옵시디언 모음집</div>\n'
-    '<p class="hero-sub">백엔드를 깊게 탐구하는 사이보그 개발자(희망)</p>\n'
-    "</div>\n</section>\n"
+    '<div class="hero-b"><img src="static/hero.jpg" alt="">'
+    '<div class="hero-t">동태의 옵시디언 모음집</div></div>\n'
 )
-
-out.append('<div class="section-heading">카테고리</div>\n')
-cards = ['<div class="card-grid">']
-for i, (tone, folder, cat_title, desc) in enumerate(CATS, 1):
-    href = slug(folder) + "/"
-    cards.append(
-        f'<a class="cat-card" data-tone="{tone}" href="{esc(href)}">'
-        f'<span class="cat-no">#{i}</span><strong class="cat-title">{esc(cat_title)}</strong>'
-        f'<span class="cat-desc">{esc(desc)}</span>'
-        f'<span class="cat-count">노트 {counts.get(folder, 0)}개</span></a>'
-    )
-cards.append("</div>\n")
-out.append("\n".join(cards))
-
-recent = sorted(notes, key=lambda n: n["mtime"], reverse=True)[:6]
-out.append('<div class="section-heading">최근 업데이트<small>최근에 고친 노트 순</small></div>\n')
-out.append('<div class="recent-list">\n')
-for n in recent:
-    link = f"[[{n['rel']}|{n['display']}]]"
-    out.append(f'- {link} <span class="recent-meta">{esc(n["cat"])} · {mmdd(n["mtime"])}</span>')
-out.append("\n</div>\n")
-
-if daily:
-    last = max(daily, key=lambda d: d["key"])
-    seg = "/".join(slug(p) for p in last["rel"].split("/"))
-    meta = f'{last["stem"]}'
-    if last["hours"]:
-        meta += f' · 공부 시간 {esc(last["hours"])}시간'
-    box = ['<div class="section-heading">가장 최근 회고</div>\n', '<div class="recap">']
-    box.append(f'<div class="recap-label">{meta}</div>')
-    box.append(f'<div class="recap-title"><a href="{esc(seg)}">{esc(last["stem"])} 회고 보러 가기</a></div>')
-    if last["topics"]:
-        chips = "".join(f'<span class="recap-topic">#{esc(t)}</span>' for t in last["topics"][:8])
-        box.append(f'<div class="recap-topics">{chips}</div>')
-    if last["todos"]:
-        items = "".join(f"<li>{esc(t)}</li>" for t in last["todos"][:4])
-        box.append(f'<ul class="recap-todo">{items}</ul>')
-    box.append("</div>\n")
-    out.append("\n".join(box))
-
-if tags:
-    out.append('<div class="section-heading">태그 모음<small>많이 쓴 순</small></div>\n')
-    cloud = ['<div class="tag-cloud">']
-    for t, c in sorted(tags.items(), key=lambda kv: (-kv[1], kv[0]))[:24]:
-        cloud.append(f'<a class="tag-chip" href="tags/{esc(slug(t))}">#{esc(t)}<i>{c}</i></a>')
-    cloud.append("</div>\n")
-    out.append("\n".join(cloud))
+out.append('<div class="home-cards">' + "".join(cards) + "</div>\n")
+out.append('<div class="home-sec">최근에 쓴 글</div>\n')
+out.append('<div class="home-rows">' + recent_rows + "</div>\n")
+out.append(f'<div class="home-sec">이번 주에 쓴 글 <small>{week_label} · {len(week)}개</small></div>\n')
+out.append('<div class="home-week">' + week_chips + "</div>\n")
 
 with open(os.path.join(dest, "index.md"), "w", encoding="utf-8") as f:
     f.write("\n".join(out))

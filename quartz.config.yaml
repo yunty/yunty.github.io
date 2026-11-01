@@ -20,25 +20,25 @@ configuration:
       code: JetBrains Mono
     colors:
       lightMode:
-        light: "#fbfaf8"
-        lightgray: "#ebe8e4"
-        gray: "#b9b4ae"
-        darkgray: "#55504c"
-        dark: "#2d2a28"
-        secondary: "#5b73d1"
-        tertiary: "#6fb09a"
-        highlight: rgba(91, 115, 209, 0.10)
-        textHighlight: "#ffe9a688"
+        light: "#ffffff"
+        lightgray: "#e0e0e0"
+        gray: "#ababab"
+        darkgray: "#5c5c5c"
+        dark: "#222222"
+        secondary: "#705dcf"
+        tertiary: "#8a5cf5"
+        highlight: rgba(138, 92, 245, 0.10)
+        textHighlight: "#ffd00066"
       darkMode:
-        light: "#1c1b1f"
-        lightgray: "#34323a"
-        gray: "#6b6873"
-        darkgray: "#d6d3dc"
-        dark: "#f0eef3"
-        secondary: "#9db0ff"
-        tertiary: "#8fcdb9"
-        highlight: rgba(157, 176, 255, 0.12)
-        textHighlight: "#b3aa0288"
+        light: "#1e1e1e"
+        lightgray: "#363636"
+        gray: "#666666"
+        darkgray: "#b3b3b3"
+        dark: "#dadada"
+        secondary: "#a68af9"
+        tertiary: "#8a5cf5"
+        highlight: rgba(166, 138, 249, 0.15)
+        textHighlight: "#ffd00055"
 plugins:
   - source: "@quartz-community/created-modified-date"
     enabled: true
@@ -250,8 +250,8 @@ plugins:
       links:
         GitHub: https://github.com/yunty
     layout:
-      position: footer
-      priority: 50
+      position: right
+      priority: 90
   - source: "@quartz-community/recent-notes"
     enabled: false
   - source: "@quartz-community/spacer"

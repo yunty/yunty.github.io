@@ -2,72 +2,14 @@
 title: 동태의 옵시디언 모음집
 ---
 
-<section class="hero">
-<div class="hero-body">
-<span class="hero-badge">TREE STUDY</span>
-<div class="hero-title">동태의 옵시디언 모음집</div>
-<p class="hero-sub">백엔드를 깊게 탐구하는 사이보그 개발자(희망)</p>
-</div>
-</section>
+<div class="hero-b"><img src="static/hero.jpg" alt=""><div class="hero-t">동태의 옵시디언 모음집</div></div>
 
-<div class="section-heading">카테고리</div>
+<div class="home-cards"><a class="hc" style="--fg:#ff7a59" href="01_Java/"><i>15</i><b>자바</b><span>JVM, 리플렉션, 동시성, 최신 문법</span></a><a class="hc" style="--fg:#ff6fa5" href="03_디자인-패턴/"><i>24</i><b>디자인 패턴</b><span>GoF 생성 · 구조 · 행동</span></a><a class="hc" style="--fg:#f5b800" href="05_Git/"><i>4</i><b>깃</b><span>기본 개념과 사용법, 커밋 메시지</span></a><a class="hc" style="--fg:#705dcf" href="06_CS/"><i>2</i><b>CS</b><span>터미널, 컴퓨터가 코드를 실행하는 길</span></a><a class="hc" style="--fg:#3b8fe8" href="네트워크/"><i>16</i><b>네트워크</b><span>HTTP와 네트워크 연결 구조</span></a><a class="hc" style="--fg:#1fb58f" href="07_백엔드/"><i>8</i><b>백엔드</b><span>스프링 구조, 요청 흐름, DB 접근</span></a><a class="hc" style="--fg:#8a7fb0" href="회고/"><i>7</i><b>회고</b><span>일일 · 주간 공부 기록</span></a></div>
 
-<div class="card-grid">
-<a class="cat-card" data-tone="1" href="01_java/"><span class="cat-no">#1</span><strong class="cat-title">자바</strong><span class="cat-desc">자바 기본과 동시성</span><span class="cat-count">노트 11개</span></a>
-<a class="cat-card" data-tone="2" href="03_디자인-패턴/"><span class="cat-no">#2</span><strong class="cat-title">디자인 패턴</strong><span class="cat-desc">GoF 생성, 구조, 행동 패턴</span><span class="cat-count">노트 24개</span></a>
-<a class="cat-card" data-tone="3" href="05_git/"><span class="cat-no">#3</span><strong class="cat-title">깃</strong><span class="cat-desc">기본 개념과 사용법, 커밋 메시지</span><span class="cat-count">노트 4개</span></a>
-<a class="cat-card" data-tone="5" href="06_cs/"><span class="cat-no">#4</span><strong class="cat-title">CS</strong><span class="cat-desc">터미널 같은 컴퓨터 기본기</span><span class="cat-count">노트 1개</span></a>
-<a class="cat-card" data-tone="6" href="네트워크/"><span class="cat-no">#5</span><strong class="cat-title">네트워크</strong><span class="cat-desc">HTTP와 네트워크 연결 구조</span><span class="cat-count">노트 16개</span></a>
-<a class="cat-card" data-tone="7" href="07_백엔드/"><span class="cat-no">#6</span><strong class="cat-title">백엔드</strong><span class="cat-desc">스프링 구조, 요청 흐름, DB 접근</span><span class="cat-count">노트 8개</span></a>
-<a class="cat-card" data-tone="4" href="회고/"><span class="cat-no">#7</span><strong class="cat-title">회고</strong><span class="cat-desc">하루하루 공부한 내용과 헷갈렸던 점</span><span class="cat-count">노트 3개</span></a>
-</div>
+<div class="home-sec">최근에 쓴 글</div>
 
-<div class="section-heading">최근 업데이트<small>최근에 고친 노트 순</small></div>
+<div class="home-rows"><a class="hr" style="--fg:#705dcf" href="06_CS/사람이-컴퓨터를-조작하는-방법"><span>사람이 컴퓨터를 조작하는 방법</span><em>CS</em></a><a class="hr" style="--fg:#ff7a59" href="01_Java/04_최신-문법/Sealed"><span>Sealed</span><em>자바</em></a><a class="hr" style="--fg:#ff7a59" href="01_Java/01_JVM과-클래스/중첩-클래스"><span>중첩 클래스</span><em>자바</em></a><a class="hr" style="--fg:#ff7a59" href="01_Java/02_리플렉션과-어노테이션/어노테이션과-리플렉션"><span>어노테이션과 리플렉션</span><em>자바</em></a><a class="hr" style="--fg:#ff7a59" href="01_Java/04_최신-문법/패턴-매칭"><span>패턴 매칭</span><em>자바</em></a></div>
 
-<div class="recent-list">
+<div class="home-sec">이번 주에 쓴 글 <small>10.26 ~ 11.1 · 19개</small></div>
 
-- [[네트워크/이세상의 네트워크 연결구조|이세상의 네트워크 연결구조]] <span class="recent-meta">네트워크 · 10.29</span>
-- [[네트워크/http 강의/핵심 정리|핵심 정리]] <span class="recent-meta">네트워크 · 10.29</span>
-- [[회고/26년 10월/10.28|10.28 회고]] <span class="recent-meta">회고 · 10.29</span>
-- [[07_백엔드/스프링/08_AOP|AOP]] <span class="recent-meta">백엔드 · 10.28</span>
-- [[07_백엔드/스프링/07_DB 접근 기술|DB 접근 기술]] <span class="recent-meta">백엔드 · 10.28</span>
-- [[회고/26년 10월/10.27|10.27 회고]] <span class="recent-meta">회고 · 10.28</span>
-
-</div>
-
-<div class="section-heading">가장 최근 회고</div>
-
-<div class="recap">
-<div class="recap-label">10.28 · 공부 시간 6시간</div>
-<div class="recap-title"><a href="회고/26년-10월/10.28">10.28 회고 보러 가기</a></div>
-<div class="recap-topics"><span class="recap-topic">#스프링/db/h2</span><span class="recap-topic">#스프링/db/jdbc</span><span class="recap-topic">#스프링/db/datasource</span><span class="recap-topic">#스프링/db/커넥션풀</span><span class="recap-topic">#스프링/db/jdbctemplate</span><span class="recap-topic">#스프링/db/jpa</span><span class="recap-topic">#스프링/db/스프링데이터jpa</span><span class="recap-topic">#스프링/테스트/통합테스트</span></div>
-</div>
-
-<div class="section-heading">태그 모음<small>많이 쓴 순</small></div>
-
-<div class="tag-cloud">
-<a class="tag-chip" href="tags/스프링">#스프링<i>8</i></a>
-<a class="tag-chip" href="tags/git">#git<i>3</i></a>
-<a class="tag-chip" href="tags/구조">#구조<i>3</i></a>
-<a class="tag-chip" href="tags/기초">#기초<i>3</i></a>
-<a class="tag-chip" href="tags/네트워크">#네트워크<i>3</i></a>
-<a class="tag-chip" href="tags/일일공부">#일일공부<i>3</i></a>
-<a class="tag-chip" href="tags/http">#http<i>2</i></a>
-<a class="tag-chip" href="tags/톰캣">#톰캣<i>2</i></a>
-<a class="tag-chip" href="tags/학습자료">#학습자료<i>2</i></a>
-<a class="tag-chip" href="tags/aop">#aop<i>1</i></a>
-<a class="tag-chip" href="tags/api">#api<i>1</i></a>
-<a class="tag-chip" href="tags/db">#db<i>1</i></a>
-<a class="tag-chip" href="tags/di">#di<i>1</i></a>
-<a class="tag-chip" href="tags/jpa">#jpa<i>1</i></a>
-<a class="tag-chip" href="tags/mvc">#mvc<i>1</i></a>
-<a class="tag-chip" href="tags/rest">#rest<i>1</i></a>
-<a class="tag-chip" href="tags/네트워크기초">#네트워크기초<i>1</i></a>
-<a class="tag-chip" href="tags/빈">#빈<i>1</i></a>
-<a class="tag-chip" href="tags/서블릿">#서블릿<i>1</i></a>
-<a class="tag-chip" href="tags/스프링/aop">#스프링/aop<i>1</i></a>
-<a class="tag-chip" href="tags/스프링/db/datasource">#스프링/db/datasource<i>1</i></a>
-<a class="tag-chip" href="tags/스프링/db/h2">#스프링/db/h2<i>1</i></a>
-<a class="tag-chip" href="tags/스프링/db/jdbc">#스프링/db/jdbc<i>1</i></a>
-<a class="tag-chip" href="tags/스프링/db/jdbctemplate">#스프링/db/jdbctemplate<i>1</i></a>
-</div>
+<div class="home-week"><a class="hw" style="--fg:#705dcf" href="06_CS/사람이-컴퓨터를-조작하는-방법">사람이 컴퓨터를 조작하는 방법</a><a class="hw" style="--fg:#ff7a59" href="01_Java/04_최신-문법/Sealed">Sealed</a><a class="hw" style="--fg:#ff7a59" href="01_Java/01_JVM과-클래스/중첩-클래스">중첩 클래스</a><a class="hw" style="--fg:#ff7a59" href="01_Java/02_리플렉션과-어노테이션/어노테이션과-리플렉션">어노테이션과 리플렉션</a><a class="hw" style="--fg:#ff7a59" href="01_Java/04_최신-문법/패턴-매칭">패턴 매칭</a><a class="hw" style="--fg:#3b8fe8" href="네트워크/이세상의-네트워크-연결구조">이세상의 네트워크 연결구조</a><a class="hw" style="--fg:#3b8fe8" href="네트워크/http-강의/핵심-정리">핵심 정리</a><a class="hw" style="--fg:#1fb58f" href="07_백엔드/스프링/08_AOP">AOP</a><a class="hw" style="--fg:#1fb58f" href="07_백엔드/스프링/07_DB-접근-기술">DB 접근 기술</a><a class="hw" style="--fg:#1fb58f" href="07_백엔드/스프링/06_빈과-의존관계">빈과 의존관계</a><a class="hw" style="--fg:#ff6fa5" href="03_디자인-패턴/01_GoF_생성/Abstract-Factory(생성)">Abstract Factory(생성)</a><a class="hw" style="--fg:#1fb58f" href="07_백엔드/스프링/05_스프링-MVC-요청-흐름">스프링 MVC 요청 흐름</a><a class="hw" style="--fg:#8a7fb0" href="회고/일일/26년-11월/11.1">11.1 일일 회고</a><a class="hw" style="--fg:#8a7fb0" href="회고/주간/26년-44주차(10.26~11.1)">26년 44주차(10.26~11.1)</a><a class="hw" style="--fg:#8a7fb0" href="회고/일일/26년-10월/10.30">10.30 일일 회고</a><a class="hw" style="--fg:#8a7fb0" href="회고/일일/26년-10월/10.29">10.29 일일 회고</a><a class="hw" style="--fg:#8a7fb0" href="회고/일일/26년-10월/10.28">10.28 일일 회고</a><a class="hw" style="--fg:#8a7fb0" href="회고/일일/26년-10월/10.27">10.27 일일 회고</a><a class="hw" style="--fg:#8a7fb0" href="회고/일일/26년-10월/10.26">10.26 일일 회고</a></div>

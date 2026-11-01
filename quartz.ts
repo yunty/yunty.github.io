@@ -4,6 +4,8 @@ import { componentRegistry } from "./quartz/components/registry"
 // 탐색기에서 폴더/파일 앞의 번호(01_, 03_ ...)는 정렬에만 쓰고 화면에는 숨긴다.
 // 이 함수들은 브라우저로 직렬화되어 실행될 수 있어서 바깥 변수를 쓰지 않는다.
 componentRegistry.setOptionOverrides("@quartz-community/explorer", {
+  // 폴더를 누르면 목록 화면으로 이동하지 않고 탐색기에서 펼치기만 한다
+  folderClickBehavior: "collapse",
   mapFn: (node: any) => {
     const names: Record<string, string> = {
       "01_java": "자바",
