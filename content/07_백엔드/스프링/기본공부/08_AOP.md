@@ -1,6 +1,6 @@
 ---
 title: AOP
-modified: 2026-10-28
+modified: 2026-11-02
 date: 2026-10-28
 tags: [스프링, AOP]
 ---
@@ -44,4 +44,4 @@ public class ExecutionTimer {
 ```
 - 콘솔에 찍어보면 클래스 이름에 `$$EnhancerBySpringCGLIB`가 붙어있어서 프록시인걸 확인할 수 있음
 - `@Transactional`도 같은 프록시 방식으로 동작
-- 앞에서 본 커넥션 풀의 `close()`가 반납이 되는 것도 진짜 연결을 감싼 프록시라서 → [[07_백엔드/스프링/07_DB 접근 기술|DB 접근 기술]]
+- 앞에서 본 커넥션 풀의 `close()`가 반납이 되는 것도 진짜 연결을 감싼 프록시라서 → [[07_DB 접근 기술|DB 접근 기술]]

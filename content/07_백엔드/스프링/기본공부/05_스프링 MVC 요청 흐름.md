@@ -1,6 +1,6 @@
 ---
 title: 스프링 MVC 요청 흐름
-modified: 2026-10-26
+modified: 2026-11-02
 date: 2026-10-26
 tags: [스프링, MVC, 구조]
 ---
@@ -83,7 +83,7 @@ chain.triggerAfterCompletion(req, resp, ex);      // 7. 예외가 나도 실행
 - 위 코드는 이해하려고 줄인 모양이고 실제 스프링 소스는 아님
 - 실제 이름 : `RequestMappingHandlerMapping`, `RequestMappingHandlerAdapter`, `HandlerMethodArgumentResolver`, `HandlerMethodReturnValueHandler`
 - 직접 확인하려면 `DispatcherServlet.doDispatch`에 중단점 걸고 디버깅
-- 앞 → [[07_백엔드/스프링/02_톰캣과 서블릿|톰캣과 서블릿]]
+- 앞 → [[02_톰캣과 서블릿|톰캣과 서블릿]]
 
 ---
 ## 같이 보는 자료

@@ -1,6 +1,6 @@
 ---
 title: RESTful 맛보기
-modified: 2026-10-25
+modified: 2026-11-02
 date: 2026-10-25
 tags: [스프링, REST, API]
 ---
@@ -46,7 +46,7 @@ public class GreetingController {
 
 - `@RestController` = `@Controller` + `@ResponseBody`
 - 객체 → JSON 변환은 `HttpMessageConverter`(Jackson)가 해줌
-- 즉 데이터 응답은 Response에 바로 쓰고 끝나서 ViewResolver, View 단계를 건너뜀 → [[07_백엔드/스프링/05_스프링 MVC 요청 흐름|스프링 MVC 요청 흐름]]
+- 즉 데이터 응답은 Response에 바로 쓰고 끝나서 ViewResolver, View 단계를 건너뜀 → [[05_스프링 MVC 요청 흐름|스프링 MVC 요청 흐름]]
 
 ---
 ## 응용
